@@ -49,39 +49,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Map<String, dynamic>> _featuredProducts = [
     {
-      'name': 'Pure Gongura Pickle',
+      'name': 'Traditional Gongura Pachadi',
       'image': 'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=400',
       'price': 199.0,
-      'originalPrice': 249.0,
-      'rating': 4.8,
-      'reviews': 256,
       'isVeg': true,
     },
     {
-      'name': 'Gongura Pachadi',
-      'image': 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
-      'price': 179.0,
-      'originalPrice': 229.0,
-      'rating': 4.6,
-      'reviews': 189,
-      'isVeg': true,
-    },
-    {
-      'name': 'Gongura Chutney',
+      'name': 'Classic Gongura Chutney',
       'image': 'https://images.unsplash.com/photo-1546470427-227c7aa45214?w=400',
       'price': 149.0,
-      'originalPrice': 199.0,
-      'rating': 4.5,
-      'reviews': 142,
       'isVeg': true,
     },
     {
-      'name': 'Gongura Powder',
+      'name': 'Spicy Gongura Podi',
       'image': 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
-      'price': 129.0,
-      'originalPrice': 169.0,
-      'rating': 4.7,
-      'reviews': 98,
+      'price': 139.0,
       'isVeg': true,
     },
   ];
