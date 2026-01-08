@@ -46,7 +46,7 @@ class ProductCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFFAF6F1),
+          color: const Color(0xFFFDF5F5),
           borderRadius: BorderRadius.circular(16),
         ),
         clipBehavior: Clip.antiAlias,
@@ -59,7 +59,7 @@ class ProductCard extends StatelessWidget {
               child: Container(
                 width: double.infinity,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF5EFE6),
+                  color: Color(0xFFF9ECEC),
                   borderRadius: BorderRadius.vertical(
                     top: Radius.circular(16),
                   ),
@@ -140,7 +140,7 @@ class ProductCard extends StatelessWidget {
                               vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFAF6F1),
+                              color: const Color(0xFFFDF5F5),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
                                 color: const Color(0xFFD4A574),
@@ -165,29 +165,22 @@ class ProductCard extends StatelessWidget {
                                 vertical: 10,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFAF6F1),
+                                color: const Color(0xFF8B4557),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: const Color(0xFF8B4557),
-                                  width: 1,
-                                ),
                               ),
                               child: const Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(
-                                    'Add',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Color(0xFF8B4557),
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                  Icon(
+                                    Icons.eco,
+                                    size: 20,
+                                    color: Colors.white,
                                   ),
-                                  SizedBox(width: 4),
+                                  SizedBox(width: 6),
                                   Icon(
                                     Icons.add,
                                     size: 18,
-                                    color: Color(0xFF8B4557),
+                                    color: Colors.white,
                                   ),
                                 ],
                               ),
