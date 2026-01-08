@@ -24,65 +24,64 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Demo data - Replace with actual data from API
   final List<Map<String, String>> _categories = [
-    {'name': 'Gongura', 'image': 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=200'},
-    {'name': 'Mango', 'image': 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=200'},
-    {'name': 'Tomato', 'image': 'https://images.unsplash.com/photo-1546470427-227c7aa45214?w=200'},
-    {'name': 'Lemon', 'image': 'https://images.unsplash.com/photo-1590502593747-42a996133562?w=200'},
-    {'name': 'Mixed', 'image': 'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=200'},
+    {'name': 'Pachadi', 'image': 'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=200'},
+    {'name': 'Chutney', 'image': 'https://images.unsplash.com/photo-1546470427-227c7aa45214?w=200'},
+    {'name': 'Powder', 'image': 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=200'},
   ];
 
   final List<Map<String, dynamic>> _banners = [
     {
-      'title': 'Fresh Gongura Pickles',
-      'subtitle': 'Authentic taste of Andhra',
+      'title': 'Pure Gongura Delights',
+      'subtitle': 'Authentic Andhra Gongura Flavors',
       'color': AppColors.primaryLight,
     },
     {
-      'title': '20% Off First Order',
-      'subtitle': 'Use code: WELCOME20',
+      'title': '100% Vegetarian',
+      'subtitle': 'Fresh Gongura Leaf Products',
       'color': AppColors.accentLight,
     },
     {
-      'title': 'Free Delivery',
-      'subtitle': 'On orders above ₹499',
+      'title': 'Gongura Special',
+      'subtitle': 'Free delivery on orders above ₹499',
       'color': const Color(0xFFE8F5E9),
     },
   ];
 
   final List<Map<String, dynamic>> _featuredProducts = [
     {
-      'name': 'Gongura Mutton Pickle',
-      'image': 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
-      'price': 349.0,
-      'originalPrice': 449.0,
-      'rating': 4.5,
-      'reviews': 128,
-      'isVeg': false,
-    },
-    {
-      'name': 'Gongura Chicken Pickle',
-      'image': 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400',
-      'price': 299.0,
-      'originalPrice': 399.0,
-      'rating': 4.3,
-      'reviews': 95,
-      'isVeg': false,
-    },
-    {
-      'name': 'Gongura Prawns Pickle',
-      'image': 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400',
-      'price': 449.0,
-      'originalPrice': 549.0,
-      'rating': 4.7,
-      'reviews': 73,
-      'isVeg': false,
-    },
-    {
       'name': 'Pure Gongura Pickle',
       'image': 'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=400',
       'price': 199.0,
+      'originalPrice': 249.0,
       'rating': 4.8,
       'reviews': 256,
+      'isVeg': true,
+    },
+    {
+      'name': 'Gongura Pachadi',
+      'image': 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
+      'price': 179.0,
+      'originalPrice': 229.0,
+      'rating': 4.6,
+      'reviews': 189,
+      'isVeg': true,
+    },
+    {
+      'name': 'Gongura Chutney',
+      'image': 'https://images.unsplash.com/photo-1546470427-227c7aa45214?w=400',
+      'price': 149.0,
+      'originalPrice': 199.0,
+      'rating': 4.5,
+      'reviews': 142,
+      'isVeg': true,
+    },
+    {
+      'name': 'Gongura Powder',
+      'image': 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+      'price': 129.0,
+      'originalPrice': 169.0,
+      'rating': 4.7,
+      'reviews': 98,
       'isVeg': true,
     },
   ];
@@ -113,16 +112,6 @@ class _HomeScreenState extends State<HomeScreen> {
             // Featured Products
             SliverToBoxAdapter(
               child: _buildSectionTitle('Featured Products', onViewAll: () {
-                context.push(AppRoutes.productList);
-              }),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: _buildProductsGrid(),
-            ),
-            // Best Sellers
-            SliverToBoxAdapter(
-              child: _buildSectionTitle('Best Sellers', onViewAll: () {
                 context.push(AppRoutes.productList);
               }),
             ),
@@ -354,10 +343,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildProductsGrid() {
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
+        crossAxisCount: 1,
+        mainAxisSpacing: 16,
         crossAxisSpacing: 12,
-        childAspectRatio: 0.58,
+        childAspectRatio: 0.85,
       ),
       delegate: SliverChildBuilderDelegate(
         (context, index) {

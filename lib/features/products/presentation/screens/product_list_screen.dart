@@ -28,89 +28,134 @@ class _ProductListScreenState extends State<ProductListScreen> {
   bool _showVegOnly = false;
   RangeValues _priceRange = const RangeValues(0, 1000);
 
-  // Mock products data
-  final List<Map<String, dynamic>> _products = [
-    {
-      'name': 'Classic Gongura Pickle',
-      'price': 299.0,
-      'originalPrice': 399.0,
-      'image': 'https://via.placeholder.com/200x200/4CAF50/FFFFFF?text=Gongura',
-      'isVeg': true,
-      'rating': 4.5,
-      'reviews': 128,
-      'slug': 'classic-gongura-pickle',
-    },
-    {
-      'name': 'Spicy Gongura Mutton',
-      'price': 549.0,
-      'originalPrice': 649.0,
-      'image': 'https://via.placeholder.com/200x200/FF5722/FFFFFF?text=Mutton',
-      'isVeg': false,
-      'rating': 4.8,
-      'reviews': 89,
-      'slug': 'spicy-gongura-mutton',
-    },
-    {
-      'name': 'Gongura Prawns Pickle',
-      'price': 599.0,
-      'originalPrice': 699.0,
-      'image': 'https://via.placeholder.com/200x200/2196F3/FFFFFF?text=Prawns',
-      'isVeg': false,
-      'rating': 4.7,
-      'reviews': 56,
-      'slug': 'gongura-prawns-pickle',
-    },
-    {
-      'name': 'Mild Gongura Pickle',
-      'price': 249.0,
-      'originalPrice': null,
-      'image': 'https://via.placeholder.com/200x200/8BC34A/FFFFFF?text=Mild',
-      'isVeg': true,
-      'rating': 4.3,
-      'reviews': 234,
-      'slug': 'mild-gongura-pickle',
-    },
-    {
-      'name': 'Gongura Chicken Pickle',
-      'price': 499.0,
-      'originalPrice': 599.0,
-      'image': 'https://via.placeholder.com/200x200/FF9800/FFFFFF?text=Chicken',
-      'isVeg': false,
-      'rating': 4.6,
-      'reviews': 167,
-      'slug': 'gongura-chicken-pickle',
-    },
-    {
-      'name': 'Extra Spicy Gongura',
-      'price': 349.0,
-      'originalPrice': 449.0,
-      'image': 'https://via.placeholder.com/200x200/F44336/FFFFFF?text=Spicy',
-      'isVeg': true,
-      'rating': 4.4,
-      'reviews': 78,
-      'slug': 'extra-spicy-gongura',
-    },
-    {
-      'name': 'Gongura Fish Pickle',
-      'price': 579.0,
-      'originalPrice': null,
-      'image': 'https://via.placeholder.com/200x200/00BCD4/FFFFFF?text=Fish',
-      'isVeg': false,
-      'rating': 4.5,
-      'reviews': 45,
-      'slug': 'gongura-fish-pickle',
-    },
-    {
-      'name': 'Sweet Gongura Chutney',
-      'price': 199.0,
-      'originalPrice': 249.0,
-      'image': 'https://via.placeholder.com/200x200/9C27B0/FFFFFF?text=Sweet',
-      'isVeg': true,
-      'rating': 4.2,
-      'reviews': 312,
-      'slug': 'sweet-gongura-chutney',
-    },
-  ];
+  // Category-specific products data (all veg)
+  final Map<String, List<Map<String, dynamic>>> _categoryProducts = {
+    'Pachadi': [
+      {
+        'name': 'Traditional Gongura Pachadi',
+        'price': 199.0,
+        'originalPrice': 249.0,
+        'image': 'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=400',
+        'isVeg': true,
+        'rating': 4.7,
+        'reviews': 312,
+        'slug': 'traditional-gongura-pachadi',
+      },
+      {
+        'name': 'Spicy Gongura Pachadi',
+        'price': 219.0,
+        'originalPrice': 269.0,
+        'image': 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
+        'isVeg': true,
+        'rating': 4.5,
+        'reviews': 198,
+        'slug': 'spicy-gongura-pachadi',
+      },
+      {
+        'name': 'Mild Gongura Pachadi',
+        'price': 189.0,
+        'originalPrice': null,
+        'image': 'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=400',
+        'isVeg': true,
+        'rating': 4.4,
+        'reviews': 156,
+        'slug': 'mild-gongura-pachadi',
+      },
+      {
+        'name': 'Garlic Gongura Pachadi',
+        'price': 229.0,
+        'originalPrice': 279.0,
+        'image': 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
+        'isVeg': true,
+        'rating': 4.8,
+        'reviews': 223,
+        'slug': 'garlic-gongura-pachadi',
+      },
+    ],
+    'Chutney': [
+      {
+        'name': 'Classic Gongura Chutney',
+        'price': 149.0,
+        'originalPrice': 189.0,
+        'image': 'https://images.unsplash.com/photo-1546470427-227c7aa45214?w=400',
+        'isVeg': true,
+        'rating': 4.6,
+        'reviews': 287,
+        'slug': 'classic-gongura-chutney',
+      },
+      {
+        'name': 'Tangy Gongura Chutney',
+        'price': 159.0,
+        'originalPrice': 199.0,
+        'image': 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
+        'isVeg': true,
+        'rating': 4.5,
+        'reviews': 176,
+        'slug': 'tangy-gongura-chutney',
+      },
+      {
+        'name': 'Sweet Gongura Chutney',
+        'price': 169.0,
+        'originalPrice': null,
+        'image': 'https://images.unsplash.com/photo-1546470427-227c7aa45214?w=400',
+        'isVeg': true,
+        'rating': 4.3,
+        'reviews': 134,
+        'slug': 'sweet-gongura-chutney',
+      },
+    ],
+    'Powder': [
+      {
+        'name': 'Gongura Podi',
+        'price': 129.0,
+        'originalPrice': 159.0,
+        'image': 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+        'isVeg': true,
+        'rating': 4.7,
+        'reviews': 345,
+        'slug': 'gongura-podi',
+      },
+      {
+        'name': 'Spicy Gongura Powder',
+        'price': 139.0,
+        'originalPrice': 169.0,
+        'image': 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+        'isVeg': true,
+        'rating': 4.6,
+        'reviews': 234,
+        'slug': 'spicy-gongura-powder',
+      },
+      {
+        'name': 'Mild Gongura Powder',
+        'price': 119.0,
+        'originalPrice': null,
+        'image': 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+        'isVeg': true,
+        'rating': 4.4,
+        'reviews': 189,
+        'slug': 'mild-gongura-powder',
+      },
+      {
+        'name': 'Premium Gongura Powder',
+        'price': 179.0,
+        'originalPrice': 219.0,
+        'image': 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+        'isVeg': true,
+        'rating': 4.9,
+        'reviews': 156,
+        'slug': 'premium-gongura-powder',
+      },
+    ],
+  };
+
+  List<Map<String, dynamic>> get _products {
+    // If category is specified, return category-specific products
+    if (widget.category != null && _categoryProducts.containsKey(widget.category)) {
+      return _categoryProducts[widget.category]!;
+    }
+    // Otherwise return all products
+    return _categoryProducts.values.expand((list) => list).toList();
+  }
 
   List<Map<String, dynamic>> get _filteredProducts {
     var filtered = _products.where((p) {
@@ -164,10 +209,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 : GridView.builder(
                     padding: const EdgeInsets.all(16),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.58,
+                      crossAxisCount: 1,
+                      childAspectRatio: 0.85,
                       crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
+                      mainAxisSpacing: 16,
                     ),
                     itemCount: _filteredProducts.length,
                     itemBuilder: (context, index) {

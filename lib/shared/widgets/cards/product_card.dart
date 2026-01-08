@@ -15,8 +15,10 @@ class ProductCard extends StatelessWidget {
   final double? originalPrice;
   final double? rating;
   final int? reviewCount;
+  final String? description;
   final bool isVeg;
   final bool isWishlisted;
+  final bool isOutOfStock;
   final VoidCallback? onTap;
   final VoidCallback? onAddToCart;
   final VoidCallback? onWishlistToggle;
@@ -29,8 +31,10 @@ class ProductCard extends StatelessWidget {
     this.originalPrice,
     this.rating,
     this.reviewCount,
+    this.description,
     this.isVeg = true,
     this.isWishlisted = false,
+    this.isOutOfStock = false,
     this.onTap,
     this.onAddToCart,
     this.onWishlistToggle,
@@ -38,24 +42,12 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasDiscount = originalPrice != null && originalPrice! > price;
-    final discountPercent = hasDiscount
-        ? ((originalPrice! - price) / originalPrice! * 100).round()
-        : 0;
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: const Color(0xFFFAF6F1),
+          borderRadius: BorderRadius.circular(16),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -63,183 +55,144 @@ class ProductCard extends StatelessWidget {
           children: [
             // Image Section
             Expanded(
-              flex: 3,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(12),
-                    ),
-                    child: CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: AppColors.backgroundSecondary,
-                        child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: AppColors.backgroundSecondary,
-                        child: const Icon(
-                          Icons.image_not_supported_outlined,
-                          color: AppColors.textTertiary,
-                          size: 40,
-                        ),
-                      ),
-                    ),
+              flex: 5,
+              child: Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF5EFE6),
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(16),
                   ),
-                // Veg/Non-Veg indicator
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(4),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    fit: BoxFit.contain,
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     ),
-                    child: Icon(
-                      Icons.circle,
-                      size: 12,
-                      color: isVeg ? AppColors.veg : AppColors.nonVeg,
+                    errorWidget: (context, url, error) => const Icon(
+                      Icons.image_not_supported_outlined,
+                      color: AppColors.textTertiary,
+                      size: 40,
                     ),
                   ),
                 ),
-                // Discount badge
-                if (hasDiscount)
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.discount,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        '$discountPercent% OFF',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                // Wishlist button
-                Positioned(
-                  bottom: 8,
-                  right: 8,
-                  child: GestureDetector(
-                    onTap: onWishlistToggle,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        isWishlisted ? Icons.favorite : Icons.favorite_border,
-                        size: 20,
-                        color: isWishlisted ? AppColors.error : AppColors.textTertiary,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
             ),
             // Content Section
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Product Name
-                    Flexible(
-                      child: Text(
-                        name,
-                        style: AppTypography.productName,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    // Rating
-                    if (rating != null)
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.star,
-                            size: 12,
-                            color: AppColors.rating,
+                    // Product Name and Description
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF2D2D2D),
+                            letterSpacing: 0.5,
                           ),
-                          const SizedBox(width: 2),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (description != null) ...[
+                          const SizedBox(height: 4),
                           Text(
-                            rating!.toStringAsFixed(1),
-                            style: AppTypography.ratingText.copyWith(fontSize: 11),
-                          ),
-                          if (reviewCount != null) ...[
-                            Text(
-                              ' ($reviewCount)',
-                              style: AppTypography.ratingText.copyWith(fontSize: 11),
+                            description!,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF8B8B8B),
                             ),
-                          ],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ],
-                      ),
-                    const Spacer(),
+                      ],
+                    ),
                     // Price Row
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                Formatters.formatCurrency(price),
-                                style: AppTypography.priceRegular.copyWith(
-                                  color: AppColors.primary,
-                                  fontSize: 14,
+                        // Price
+                        Text(
+                          Formatters.formatCurrency(price),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF2D2D2D),
+                          ),
+                        ),
+                        // Add Button or Out of Stock
+                        if (isOutOfStock)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFAF6F1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: const Color(0xFFD4A574),
+                                width: 1,
+                              ),
+                            ),
+                            child: const Text(
+                              'Out of stock',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFFD4A574),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          )
+                        else
+                          GestureDetector(
+                            onTap: onAddToCart,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFAF6F1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: const Color(0xFF8B4557),
+                                  width: 1,
                                 ),
                               ),
-                              if (hasDiscount)
-                                Text(
-                                  Formatters.formatCurrency(originalPrice!),
-                                  style: AppTypography.priceStruck.copyWith(fontSize: 11),
-                                ),
-                            ],
-                          ),
-                        ),
-                        // Add to Cart Button
-                        GestureDetector(
-                          onTap: onAddToCart,
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 18,
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Add',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF8B4557),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Icon(
+                                    Icons.add,
+                                    size: 18,
+                                    color: Color(0xFF8B4557),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ],
