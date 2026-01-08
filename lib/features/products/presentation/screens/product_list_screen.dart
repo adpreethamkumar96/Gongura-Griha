@@ -277,21 +277,39 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
           const Spacer(),
 
-          // Veg filter chip
-          FilterChip(
-            label: const Text('Veg Only'),
-            selected: _showVegOnly,
-            onSelected: (value) {
-              setState(() => _showVegOnly = value);
+          // Veg filter icon
+          GestureDetector(
+            onTap: () {
+              setState(() => _showVegOnly = !_showVegOnly);
             },
-            selectedColor: AppColors.veg.withAlpha(51),
-            checkmarkColor: AppColors.veg,
-            labelStyle: TextStyle(
-              color: _showVegOnly ? AppColors.veg : AppColors.textSecondary,
-              fontSize: 12,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: _showVegOnly ? const Color(0xFF4A7C59).withAlpha(30) : Colors.transparent,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: const Color(0xFF4A7C59),
+                    width: 2,
+                  ),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Center(
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4A7C59),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+              ),
             ),
-            padding: EdgeInsets.zero,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
 
           const SizedBox(width: 12),
