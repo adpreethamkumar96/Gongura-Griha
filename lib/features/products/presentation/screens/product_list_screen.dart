@@ -34,27 +34,30 @@ class _ProductListScreenState extends State<ProductListScreen> {
       {
         'name': 'Traditional Gongura Pachadi',
         'price': 199.0,
-        'image': 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
+        'image': 'assets/images/GonguraPickle.png',
         'isVeg': true,
         'slug': 'traditional-gongura-pachadi',
+        'isAsset': true,
       },
     ],
     'Chutney': [
       {
         'name': 'Classic Gongura Chutney',
         'price': 149.0,
-        'image': 'https://images.unsplash.com/photo-1606471191009-63994c53433b?w=400',
+        'image': 'assets/images/GonguraChutney.png',
         'isVeg': true,
         'slug': 'classic-gongura-chutney',
+        'isAsset': true,
       },
     ],
     'Powder': [
       {
         'name': 'Spicy Gongura Podi',
         'price': 139.0,
-        'image': 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400',
+        'image': 'assets/images/GonguraPowder.png',
         'isVeg': true,
         'slug': 'spicy-gongura-podi',
+        'isAsset': true,
       },
     ],
   };
@@ -134,22 +137,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         price: product['price'] as double,
                         imageUrl: product['image'] as String,
                         isVeg: product['isVeg'] as bool,
+                        isAsset: product['isAsset'] as bool? ?? false,
                         onTap: () {
                           context.push(
                             AppRoutes.getProductDetailRoute(product['slug'] as String),
                           );
                         },
                         onAddToCart: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('${product['name']} added to cart'),
-                              backgroundColor: const Color(0xFF4A7C59),
-                              action: SnackBarAction(
-                                label: 'VIEW CART',
-                                textColor: Colors.white,
-                                onPressed: () => context.push(AppRoutes.cart),
-                              ),
-                            ),
+                          context.push(
+                            AppRoutes.getProductDetailRoute(product['slug'] as String),
                           );
                         },
                       );

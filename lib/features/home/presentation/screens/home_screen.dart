@@ -52,24 +52,27 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Map<String, dynamic>> _featuredProducts = [
     {
       'name': 'Traditional Gongura Pachadi',
-      'image': 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
+      'image': 'assets/images/GonguraPickle.png',
       'price': 199.0,
       'isVeg': true,
       'slug': 'traditional-gongura-pachadi',
+      'isAsset': true,
     },
     {
       'name': 'Classic Gongura Chutney',
-      'image': 'https://images.unsplash.com/photo-1606471191009-63994c53433b?w=400',
+      'image': 'assets/images/GonguraChutney.png',
       'price': 149.0,
       'isVeg': true,
       'slug': 'classic-gongura-chutney',
+      'isAsset': true,
     },
     {
       'name': 'Spicy Gongura Podi',
-      'image': 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400',
+      'image': 'assets/images/GonguraPowder.png',
       'price': 139.0,
       'isVeg': true,
       'slug': 'spicy-gongura-podi',
+      'isAsset': true,
     },
   ];
 
@@ -389,17 +392,12 @@ class _HomeScreenState extends State<HomeScreen> {
             rating: product['rating'] as double?,
             reviewCount: product['reviews'] as int?,
             isVeg: product['isVeg'] as bool,
+            isAsset: product['isAsset'] as bool? ?? false,
             onTap: () {
               context.push(AppRoutes.getProductDetailRoute(product['slug'] as String));
             },
             onAddToCart: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Added to cart!'),
-                  backgroundColor: AppColors.success,
-                  duration: Duration(seconds: 1),
-                ),
-              );
+              context.push(AppRoutes.getProductDetailRoute(product['slug'] as String));
             },
             onWishlistToggle: () {
               // TODO: Implement wishlist toggle

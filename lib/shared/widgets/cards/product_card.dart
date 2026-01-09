@@ -19,6 +19,7 @@ class ProductCard extends StatelessWidget {
   final bool isVeg;
   final bool isWishlisted;
   final bool isOutOfStock;
+  final bool isAsset;
   final VoidCallback? onTap;
   final VoidCallback? onAddToCart;
   final VoidCallback? onWishlistToggle;
@@ -35,6 +36,7 @@ class ProductCard extends StatelessWidget {
     this.isVeg = true,
     this.isWishlisted = false,
     this.isOutOfStock = false,
+    this.isAsset = false,
     this.onTap,
     this.onAddToCart,
     this.onWishlistToggle,
@@ -78,25 +80,36 @@ class ProductCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.contain,
-                        placeholder: (context, url) => Center(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: const Color(0xFF4A7C59).withAlpha(100),
+                    child: isAsset
+                      ? Image.asset(
+                          imageUrl,
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            Icons.eco,
+                            color: const Color(0xFF4A7C59).withAlpha(60),
+                            size: 36,
+                          ),
+                        )
+                      : CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: const Color(0xFF4A7C59).withAlpha(100),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Icon(
+                            Icons.eco,
+                            color: const Color(0xFF4A7C59).withAlpha(60),
+                            size: 36,
                           ),
                         ),
-                        errorWidget: (context, url, error) => Icon(
-                          Icons.eco,
-                          color: const Color(0xFF4A7C59).withAlpha(60),
-                          size: 36,
-                        ),
-                      ),
-                    ),
-                  ),
+                ),
                   // Out of stock overlay
                   if (isOutOfStock)
                     Container(

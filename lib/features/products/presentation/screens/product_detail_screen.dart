@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/utils/formatters.dart';
@@ -24,7 +23,27 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _selectedSizeIndex = 0;
   bool _isWishlisted = false;
-  bool _isAddingToCart = false;
+
+  // Separate quantity for each size: [S, M, L]
+  final List<int> _quantities = [0, 0, 0];
+
+  // Get current size's quantity
+  int get _quantity => _quantities[_selectedSizeIndex];
+
+  // Max quantity limits based on size index
+  // Size 0 (S): max 2, Size 1 (M): max 4, Size 2 (L): max 5
+  int get _maxQuantity {
+    switch (_selectedSizeIndex) {
+      case 0:
+        return 2;
+      case 1:
+        return 4;
+      case 2:
+        return 5;
+      default:
+        return 2;
+    }
+  }
 
   // Product data mapped by slug
   static final Map<String, Map<String, dynamic>> _productsData = {
@@ -34,8 +53,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           'Authentic Andhra-style gongura pachadi made with fresh, hand-picked gongura leaves. This tangy and spicy pachadi is prepared using traditional recipes passed down through generations. Perfect accompaniment for hot rice and rotis.',
       'price': 199.0,
       'images': [
-        'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
+        'assets/images/GonguraPickle.png',
       ],
+      'isAsset': true,
       'isVeg': true,
       'inStock': true,
       'sizes': [
@@ -102,8 +122,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           'A delicious gongura chutney with the perfect blend of tangy and spicy flavors. Made fresh with tender gongura leaves, this chutney adds a burst of authentic South Indian taste to any meal. Ideal for dosas, idlis, and rice.',
       'price': 149.0,
       'images': [
-        'https://images.unsplash.com/photo-1606471191009-63994c53433b?w=400',
+        'assets/images/GonguraChutney.png',
       ],
+      'isAsset': true,
       'isVeg': true,
       'inStock': true,
       'sizes': [
@@ -170,8 +191,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           'A flavorful dry powder made from sun-dried gongura leaves and aromatic spices. This versatile podi can be mixed with rice and ghee, sprinkled on dosas, or used as a seasoning. A must-have for gongura lovers!',
       'price': 139.0,
       'images': [
-        'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400',
+        'assets/images/GonguraPowder.png',
       ],
+      'isAsset': true,
       'isVeg': true,
       'inStock': true,
       'sizes': [
@@ -337,17 +359,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 setState(() => _currentImageIndex = index);
               },
               itemBuilder: (context, index) {
+                final isAsset = _product['isAsset'] as bool? ?? false;
                 return Container(
                   color: AppColors.backgroundSecondary,
-                  child: Image.network(
-                    images[index] as String,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Icon(
-                      Icons.image,
-                      size: 64,
-                      color: AppColors.textTertiary,
-                    ),
-                  ),
+                  child: isAsset
+                      ? Image.asset(
+                          images[index] as String,
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(
+                            Icons.image,
+                            size: 64,
+                            color: AppColors.textTertiary,
+                          ),
+                        )
+                      : Image.network(
+                          images[index] as String,
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(
+                            Icons.image,
+                            size: 64,
+                            color: AppColors.textTertiary,
+                          ),
+                        ),
                 );
               },
             ),
@@ -713,43 +750,40 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ],
               ),
             ),
-            GestureDetector(
-              onTap: _isAddingToCart ? null : _handleAddToCart,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4A7C59),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: _isAddingToCart
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.eco,
-                            size: 22,
-                            color: Colors.white,
-                          ),
-                          SizedBox(width: 8),
-                          Icon(
-                            Icons.add,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                        ],
-                      ),
-              ),
+            _quantity == 0
+                ? _buildAddButton()
+                : _buildQuantitySelector(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddButton() {
+    return GestureDetector(
+      onTap: _handleAddFirstItem,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 24,
+          vertical: 14,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFF4A7C59),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.eco,
+              size: 22,
+              color: Colors.white,
+            ),
+            SizedBox(width: 8),
+            Icon(
+              Icons.add,
+              size: 20,
+              color: Colors.white,
             ),
           ],
         ),
@@ -757,25 +791,92 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Future<void> _handleAddToCart() async {
-    setState(() => _isAddingToCart = true);
-
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 1));
-
-    setState(() => _isAddingToCart = false);
-
-    if (mounted) {
-      final router = GoRouter.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${_product['name']} added to cart'),
-          action: SnackBarAction(
-            label: 'VIEW CART',
-            onPressed: () => router.push(AppRoutes.cart),
+  Widget _buildQuantitySelector() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF4A7C59),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Minus button
+          GestureDetector(
+            onTap: _handleDecrement,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(51),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Icon(
+                Icons.remove,
+                size: 20,
+                color: Colors.white,
+              ),
+            ),
           ),
-        ),
-      );
+
+          // Leaves display
+          Container(
+            constraints: const BoxConstraints(minWidth: 50),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                _quantity,
+                (index) => Padding(
+                  padding: EdgeInsets.only(left: index > 0 ? 2 : 0),
+                  child: const Icon(
+                    Icons.eco,
+                    size: 18,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Plus button
+          GestureDetector(
+            onTap: _quantity < _maxQuantity ? _handleIncrement : null,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: _quantity < _maxQuantity
+                    ? Colors.white.withAlpha(51)
+                    : Colors.white.withAlpha(20),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Icon(
+                Icons.add,
+                size: 20,
+                color: _quantity < _maxQuantity
+                    ? Colors.white
+                    : Colors.white.withAlpha(100),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleAddFirstItem() {
+    setState(() => _quantities[_selectedSizeIndex] = 1);
+  }
+
+  void _handleIncrement() {
+    if (_quantity < _maxQuantity) {
+      setState(() => _quantities[_selectedSizeIndex]++);
+    }
+  }
+
+  void _handleDecrement() {
+    if (_quantity > 0) {
+      setState(() => _quantities[_selectedSizeIndex]--);
     }
   }
 }
