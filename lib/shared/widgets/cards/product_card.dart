@@ -7,7 +7,7 @@ import '../../../core/utils/formatters.dart';
 
 /// Product Card
 ///
-/// Displays product information in a card format.
+/// Modern product card for Gongura Griha pickle products.
 class ProductCard extends StatelessWidget {
   final String name;
   final String imageUrl;
@@ -46,150 +46,230 @@ class ProductCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFFDF5F5),
-          borderRadius: BorderRadius.circular(16),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF4A7C59).withAlpha(15),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Section
+            // Image Section with gradient overlay
             Expanded(
-              flex: 5,
-              child: Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF9ECEC),
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    fit: BoxFit.contain,
-                    placeholder: (context, url) => const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
+              flex: 3,
+              child: Stack(
+                children: [
+                  // Background gradient
+                  Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFFF0F7F0),
+                          Color(0xFFE8F5E9),
+                        ],
+                      ),
                     ),
-                    errorWidget: (context, url, error) => const Icon(
-                      Icons.image_not_supported_outlined,
-                      color: AppColors.textTertiary,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.contain,
+                        placeholder: (context, url) => Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: const Color(0xFF4A7C59).withAlpha(100),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Icon(
+                          Icons.eco,
+                          color: const Color(0xFF4A7C59).withAlpha(60),
+                          size: 36,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Out of stock overlay
+                  if (isOutOfStock)
+                    Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      color: Colors.white.withAlpha(180),
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF3E0),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: const Color(0xFFFF9800),
+                              width: 1,
+                            ),
+                          ),
+                          child: const Text(
+                            'Out of Stock',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFFE65100),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  // Decorative leaf accent
+                  Positioned(
+                    bottom: -8,
+                    right: -8,
+                    child: Icon(
+                      Icons.eco,
                       size: 40,
+                      color: const Color(0xFF4A7C59).withAlpha(15),
                     ),
                   ),
-                ),
+                  // Wishlist button
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: GestureDetector(
+                      onTap: onWishlistToggle,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(15),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          isWishlisted ? Icons.favorite : Icons.favorite_border,
+                          size: 20,
+                          color: isWishlisted
+                              ? const Color(0xFF4A7C59)
+                              : const Color(0xFF9E9E9E),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             // Content Section
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Product Name and Description
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          name.toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF2D2D2D),
-                            letterSpacing: 0.5,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (description != null) ...[
-                          const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(28),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Product Name
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1B5E20),
+                      height: 1.2,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (description != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      description!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                        height: 1.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  // Price and Add Button Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Price Section
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            description!,
+                            Formatters.formatCurrency(price),
                             style: const TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF8B8B8B),
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF2E7D32),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const Text(
+                            'onwards',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Color(0xFF9E9E9E),
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ],
-                      ],
-                    ),
-                    // Price Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Price
-                        Text(
-                          Formatters.formatCurrency(price),
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF2D2D2D),
-                          ),
-                        ),
-                        // Add Button or Out of Stock
-                        if (isOutOfStock)
-                          Container(
+                      ),
+                      // Add Button (keeping the same)
+                      if (!isOutOfStock)
+                        GestureDetector(
+                          onTap: onAddToCart,
+                          child: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFDF5F5),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: const Color(0xFFD4A574),
-                                width: 1,
-                              ),
+                              color: const Color(0xFF4A7C59),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Text(
-                              'Out of stock',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFFD4A574),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          )
-                        else
-                          GestureDetector(
-                            onTap: onAddToCart,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF4A7C59),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.eco,
-                                    size: 20,
-                                    color: Colors.white,
-                                  ),
-                                  SizedBox(width: 6),
-                                  Icon(
-                                    Icons.add,
-                                    size: 18,
-                                    color: Colors.white,
-                                  ),
-                                ],
-                              ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.eco,
+                                  size: 20,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: 6),
+                                Icon(
+                                  Icons.add,
+                                  size: 18,
+                                  color: Colors.white,
+                                ),
+                              ],
                             ),
                           ),
-                      ],
-                    ),
-                  ],
-                ),
+                        ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],

@@ -34,11 +34,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
       {
         'name': 'Traditional Gongura Pachadi',
         'price': 199.0,
-        'originalPrice': 249.0,
-        'image': 'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=400',
+        'image': 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
         'isVeg': true,
-        'rating': 4.7,
-        'reviews': 312,
         'slug': 'traditional-gongura-pachadi',
       },
     ],
@@ -46,11 +43,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
       {
         'name': 'Classic Gongura Chutney',
         'price': 149.0,
-        'originalPrice': 189.0,
-        'image': 'https://images.unsplash.com/photo-1546470427-227c7aa45214?w=400',
+        'image': 'https://images.unsplash.com/photo-1606471191009-63994c53433b?w=400',
         'isVeg': true,
-        'rating': 4.6,
-        'reviews': 287,
         'slug': 'classic-gongura-chutney',
       },
     ],
@@ -58,11 +52,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
       {
         'name': 'Spicy Gongura Podi',
         'price': 139.0,
-        'originalPrice': 169.0,
-        'image': 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+        'image': 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400',
         'isVeg': true,
-        'rating': 4.6,
-        'reviews': 234,
         'slug': 'spicy-gongura-podi',
       },
     ],
@@ -93,12 +84,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
       case 'price_high':
         filtered.sort((a, b) => (b['price'] as double).compareTo(a['price'] as double));
         break;
-      case 'rating':
-        filtered.sort((a, b) => (b['rating'] as double).compareTo(a['rating'] as double));
+      case 'name':
+        filtered.sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
         break;
       case 'popular':
       default:
-        filtered.sort((a, b) => (b['reviews'] as int).compareTo(a['reviews'] as int));
+        // Keep original order
+        break;
     }
 
     return filtered;
@@ -130,7 +122,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     padding: const EdgeInsets.all(16),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 1,
-                      childAspectRatio: 0.85,
+                      childAspectRatio: 1.2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 16,
                     ),
@@ -140,10 +132,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       return ProductCard(
                         name: product['name'] as String,
                         price: product['price'] as double,
-                        originalPrice: product['originalPrice'] as double?,
                         imageUrl: product['image'] as String,
                         isVeg: product['isVeg'] as bool,
-                        rating: product['rating'] as double,
                         onTap: () {
                           context.push(
                             AppRoutes.getProductDetailRoute(product['slug'] as String),
@@ -153,17 +143,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('${product['name']} added to cart'),
+                              backgroundColor: const Color(0xFF4A7C59),
                               action: SnackBarAction(
                                 label: 'VIEW CART',
+                                textColor: Colors.white,
                                 onPressed: () => context.push(AppRoutes.cart),
                               ),
-                            ),
-                          );
-                        },
-                        onWishlistToggle: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('${product['name']} added to wishlist'),
                             ),
                           );
                         },
@@ -242,7 +227,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
             },
             itemBuilder: (context) => [
               const PopupMenuItem(value: 'popular', child: Text('Most Popular')),
-              const PopupMenuItem(value: 'rating', child: Text('Highest Rated')),
+              const PopupMenuItem(value: 'name', child: Text('Name: A to Z')),
               const PopupMenuItem(value: 'price_low', child: Text('Price: Low to High')),
               const PopupMenuItem(value: 'price_high', child: Text('Price: High to Low')),
             ],

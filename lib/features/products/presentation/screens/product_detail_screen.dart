@@ -5,7 +5,6 @@ import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../../shared/widgets/buttons/primary_button.dart';
 
 /// Product Detail Screen
 ///
@@ -35,9 +34,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           'Authentic Andhra-style gongura pachadi made with fresh, hand-picked gongura leaves. This tangy and spicy pachadi is prepared using traditional recipes passed down through generations. Perfect accompaniment for hot rice and rotis.',
       'price': 199.0,
       'images': [
-        'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=400',
-        'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=400',
-        'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=400',
+        'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
       ],
       'isVeg': true,
       'inStock': true,
@@ -45,6 +42,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         {
           'weight': '250g',
           'price': 199.0,
+          'icon': Icons.eco,
+          'sizeLabel': 'S',
           'nutritionInfo': [
             {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '112 kcal'},
             {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '2.5g'},
@@ -56,6 +55,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         {
           'weight': '500g',
           'price': 379.0,
+          'icon': Icons.nature,
+          'sizeLabel': 'M',
           'nutritionInfo': [
             {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '225 kcal'},
             {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '5g'},
@@ -67,6 +68,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         {
           'weight': '1kg',
           'price': 699.0,
+          'icon': Icons.forest,
+          'sizeLabel': 'L',
           'nutritionInfo': [
             {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '450 kcal'},
             {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '10g'},
@@ -99,9 +102,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           'A delicious gongura chutney with the perfect blend of tangy and spicy flavors. Made fresh with tender gongura leaves, this chutney adds a burst of authentic South Indian taste to any meal. Ideal for dosas, idlis, and rice.',
       'price': 149.0,
       'images': [
-        'https://images.unsplash.com/photo-1546470427-227c7aa45214?w=400',
-        'https://images.unsplash.com/photo-1546470427-227c7aa45214?w=400',
-        'https://images.unsplash.com/photo-1546470427-227c7aa45214?w=400',
+        'https://images.unsplash.com/photo-1606471191009-63994c53433b?w=400',
       ],
       'isVeg': true,
       'inStock': true,
@@ -109,6 +110,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         {
           'weight': '200g',
           'price': 149.0,
+          'icon': Icons.eco,
+          'sizeLabel': 'S',
           'nutritionInfo': [
             {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '76 kcal'},
             {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '1.6g'},
@@ -120,6 +123,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         {
           'weight': '400g',
           'price': 279.0,
+          'icon': Icons.nature,
+          'sizeLabel': 'M',
           'nutritionInfo': [
             {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '152 kcal'},
             {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '3.2g'},
@@ -131,6 +136,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         {
           'weight': '800g',
           'price': 529.0,
+          'icon': Icons.forest,
+          'sizeLabel': 'L',
           'nutritionInfo': [
             {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '304 kcal'},
             {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '6.4g'},
@@ -163,9 +170,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           'A flavorful dry powder made from sun-dried gongura leaves and aromatic spices. This versatile podi can be mixed with rice and ghee, sprinkled on dosas, or used as a seasoning. A must-have for gongura lovers!',
       'price': 139.0,
       'images': [
-        'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
-        'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
-        'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+        'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400',
       ],
       'isVeg': true,
       'inStock': true,
@@ -173,6 +178,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         {
           'weight': '100g',
           'price': 139.0,
+          'icon': Icons.eco,
+          'sizeLabel': 'S',
           'nutritionInfo': [
             {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '52 kcal'},
             {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '2g'},
@@ -184,6 +191,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         {
           'weight': '250g',
           'price': 319.0,
+          'icon': Icons.nature,
+          'sizeLabel': 'M',
           'nutritionInfo': [
             {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '130 kcal'},
             {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '5g'},
@@ -195,6 +204,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         {
           'weight': '500g',
           'price': 599.0,
+          'icon': Icons.forest,
+          'sizeLabel': 'L',
           'nutritionInfo': [
             {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '260 kcal'},
             {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '10g'},
@@ -440,57 +451,65 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Select Size', style: AppTextStyles.titleSmall),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(
               sizes.length,
               (index) {
                 final size = sizes[index] as Map<String, dynamic>;
                 final isSelected = index == _selectedSizeIndex;
 
-                return Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() => _selectedSizeIndex = index);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.primary.withAlpha(26)
-                            : AppColors.surface,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
+                return GestureDetector(
+                  onTap: () {
+                    setState(() => _selectedSizeIndex = index);
+                  },
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
                           color: isSelected
-                              ? AppColors.primary
-                              : AppColors.divider,
-                          width: isSelected ? 2 : 1,
+                              ? AppColors.primary.withAlpha(40)
+                              : AppColors.primary.withAlpha(20),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.primary.withAlpha(50),
+                            width: isSelected ? 3 : 2,
+                          ),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            size['icon'] as IconData,
+                            size: isSelected ? 32 : 28,
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.primary.withAlpha(180),
+                          ),
                         ),
                       ),
-                      child: Column(
-                        children: [
-                          Text(
-                            size['weight'] as String,
-                            style: AppTextStyles.titleSmall.copyWith(
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            Formatters.formatCurrency(size['price'] as double),
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
+                      const SizedBox(height: 8),
+                      Text(
+                        size['weight'] as String,
+                        style: AppTextStyles.labelMedium.copyWith(
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.textPrimary,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 2),
+                      Text(
+                        Formatters.formatCurrency(size['price'] as double),
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: AppColors.textSecondary,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },
@@ -694,11 +713,42 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ],
               ),
             ),
-            Expanded(
-              child: PrimaryButton(
-                text: 'Add to Cart',
-                isLoading: _isAddingToCart,
-                onPressed: _handleAddToCart,
+            GestureDetector(
+              onTap: _isAddingToCart ? null : _handleAddToCart,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4A7C59),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: _isAddingToCart
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.eco,
+                            size: 22,
+                            color: Colors.white,
+                          ),
+                          SizedBox(width: 8),
+                          Icon(
+                            Icons.add,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
               ),
             ),
           ],

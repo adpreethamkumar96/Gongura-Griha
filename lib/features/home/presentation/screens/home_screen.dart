@@ -52,21 +52,21 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Map<String, dynamic>> _featuredProducts = [
     {
       'name': 'Traditional Gongura Pachadi',
-      'image': 'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=400',
+      'image': 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
       'price': 199.0,
       'isVeg': true,
       'slug': 'traditional-gongura-pachadi',
     },
     {
       'name': 'Classic Gongura Chutney',
-      'image': 'https://images.unsplash.com/photo-1546470427-227c7aa45214?w=400',
+      'image': 'https://images.unsplash.com/photo-1606471191009-63994c53433b?w=400',
       'price': 149.0,
       'isVeg': true,
       'slug': 'classic-gongura-chutney',
     },
     {
       'name': 'Spicy Gongura Podi',
-      'image': 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+      'image': 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400',
       'price': 139.0,
       'isVeg': true,
       'slug': 'spicy-gongura-podi',
@@ -376,7 +376,7 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisCount: 1,
         mainAxisSpacing: 16,
         crossAxisSpacing: 12,
-        childAspectRatio: 0.85,
+        childAspectRatio: 1.2,
       ),
       delegate: SliverChildBuilderDelegate(
         (context, index) {

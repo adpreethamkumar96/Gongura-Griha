@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
-import '../../../../core/utils/formatters.dart';
 import '../../../../shared/widgets/buttons/primary_button.dart';
+import '../../../../shared/widgets/cards/product_card.dart';
 
 /// Wishlist Screen
 ///
@@ -18,47 +18,34 @@ class WishlistScreen extends StatefulWidget {
 }
 
 class _WishlistScreenState extends State<WishlistScreen> {
-  // Mock wishlist data
+  // Mock wishlist data - matching gongura products
   final List<Map<String, dynamic>> _wishlistItems = [
     {
       'id': '1',
-      'name': 'Classic Gongura Pickle',
-      'price': 299.0,
-      'originalPrice': 399.0,
-      'image': 'https://via.placeholder.com/150x150/4CAF50/FFFFFF?text=Gongura',
+      'name': 'Traditional Gongura Pachadi',
+      'price': 199.0,
+      'image': 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
       'isVeg': true,
       'inStock': true,
-      'slug': 'classic-gongura-pickle',
+      'slug': 'traditional-gongura-pachadi',
     },
     {
       'id': '2',
-      'name': 'Spicy Gongura Mutton',
-      'price': 549.0,
-      'originalPrice': 649.0,
-      'image': 'https://via.placeholder.com/150x150/FF5722/FFFFFF?text=Mutton',
-      'isVeg': false,
+      'name': 'Classic Gongura Chutney',
+      'price': 149.0,
+      'image': 'https://images.unsplash.com/photo-1606471191009-63994c53433b?w=400',
+      'isVeg': true,
       'inStock': true,
-      'slug': 'spicy-gongura-mutton',
+      'slug': 'classic-gongura-chutney',
     },
     {
       'id': '3',
-      'name': 'Gongura Prawns Pickle',
-      'price': 599.0,
-      'originalPrice': null,
-      'image': 'https://via.placeholder.com/150x150/2196F3/FFFFFF?text=Prawns',
-      'isVeg': false,
-      'inStock': false,
-      'slug': 'gongura-prawns-pickle',
-    },
-    {
-      'id': '4',
-      'name': 'Sweet Gongura Chutney',
-      'price': 199.0,
-      'originalPrice': 249.0,
-      'image': 'https://via.placeholder.com/150x150/9C27B0/FFFFFF?text=Sweet',
+      'name': 'Spicy Gongura Podi',
+      'price': 139.0,
+      'image': 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400',
       'isVeg': true,
       'inStock': true,
-      'slug': 'sweet-gongura-chutney',
+      'slug': 'spicy-gongura-podi',
     },
   ];
 
@@ -111,281 +98,50 @@ class _WishlistScreenState extends State<WishlistScreen> {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.7,
+        crossAxisCount: 1,
+        childAspectRatio: 1.2,
         crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+        mainAxisSpacing: 16,
       ),
       itemCount: _wishlistItems.length,
       itemBuilder: (context, index) {
-        return _buildWishlistCard(_wishlistItems[index]);
-      },
-    );
-  }
-
-  Widget _buildWishlistCard(Map<String, dynamic> item) {
-    final inStock = item['inStock'] as bool;
-
-    return GestureDetector(
-      onTap: () {
-        context.push(AppRoutes.getProductDetailRoute(item['slug'] as String));
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(13),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image with remove button
-            Expanded(
-              flex: 3,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Image
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(12),
-                    ),
-                    child: ColorFiltered(
-                      colorFilter: inStock
-                          ? const ColorFilter.mode(
-                              Colors.transparent,
-                              BlendMode.multiply,
-                            )
-                          : ColorFilter.mode(
-                              Colors.grey.shade400,
-                              BlendMode.saturation,
-                            ),
-                      child: Image.network(
-                        item['image'] as String,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: AppColors.backgroundSecondary,
-                          child: Icon(
-                            Icons.image,
-                            color: AppColors.textTertiary,
-                            size: 40,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                // Out of stock overlay
-                if (!inStock)
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withAlpha(102),
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12),
-                        ),
-                      ),
-                      child: Center(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.error,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'Out of Stock',
-                            style: AppTextStyles.labelSmall.copyWith(
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                // Remove button
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: GestureDetector(
-                    onTap: () => _removeFromWishlist(item['id'] as String),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withAlpha(26),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.favorite,
-                        color: AppColors.error,
-                        size: 18,
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Veg indicator
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(2),
-                      border: Border.all(
-                        color: item['isVeg'] as bool
-                            ? AppColors.veg
-                            : AppColors.nonVeg,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.circle,
-                      size: 8,
-                      color: item['isVeg'] as bool
-                          ? AppColors.veg
-                          : AppColors.nonVeg,
-                    ),
-                  ),
-                ),
-
-                // Discount badge
-                if (item['originalPrice'] != null)
-                  Positioned(
-                    bottom: 8,
-                    left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.discount,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        '${Formatters.calculateDiscountPercentage(item['originalPrice'] as double, item['price'] as double)}% OFF',
-                        style: AppTextStyles.labelSmall.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            ),
-
-            // Details
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        item['name'] as String,
-                        style: AppTextStyles.bodyMedium,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const Spacer(),
-                  Row(
-                    children: [
-                      Text(
-                        Formatters.formatCurrency(item['price'] as double),
-                        style: AppTextStyles.titleSmall.copyWith(
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      if (item['originalPrice'] != null) ...[
-                        const SizedBox(width: 4),
-                        Text(
-                          Formatters.formatCurrency(
-                              item['originalPrice'] as double),
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.textTertiary,
-                            decoration: TextDecoration.lineThrough,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                    // Add to cart button
-                    SizedBox(
-                      width: double.infinity,
-                      child: inStock
-                          ? OutlinedButton(
-                              onPressed: () => _addToCart(item),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 6),
-                              ),
-                              child: const Text('Add to Cart'),
-                            )
-                          : OutlinedButton(
-                              onPressed: null,
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 6),
-                              ),
-                              child: const Text('Notify Me'),
-                            ),
-                    ),
-                  ],
+        final item = _wishlistItems[index];
+        return ProductCard(
+          name: item['name'] as String,
+          price: item['price'] as double,
+          imageUrl: item['image'] as String,
+          isVeg: item['isVeg'] as bool,
+          isOutOfStock: !(item['inStock'] as bool),
+          isWishlisted: true,
+          onTap: () {
+            context.push(AppRoutes.getProductDetailRoute(item['slug'] as String));
+          },
+          onAddToCart: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('${item['name']} added to cart'),
+                backgroundColor: const Color(0xFF4A7C59),
+                action: SnackBarAction(
+                  label: 'VIEW CART',
+                  textColor: Colors.white,
+                  onPressed: () => context.push(AppRoutes.cart),
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _removeFromWishlist(String itemId) {
-    setState(() {
-      _wishlistItems.removeWhere((item) => item['id'] == itemId);
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Removed from wishlist'),
-        action: SnackBarAction(
-          label: 'Undo',
-          onPressed: () {
-            // Undo remove
+            );
           },
-        ),
-      ),
-    );
-  }
-
-  void _addToCart(Map<String, dynamic> item) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${item['name']} added to cart'),
-        action: SnackBarAction(
-          label: 'VIEW CART',
-          onPressed: () => context.push(AppRoutes.cart),
-        ),
-      ),
+          onWishlistToggle: () {
+            setState(() {
+              _wishlistItems.removeAt(index);
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Removed from wishlist'),
+                backgroundColor: Color(0xFF4A7C59),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
