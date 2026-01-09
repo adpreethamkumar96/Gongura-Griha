@@ -159,8 +159,8 @@ class AboutScreen extends StatelessWidget {
                             color: AppColors.primary),
                         title: const Text('Address'),
                         subtitle: const Text(
-                          '123, Banjara Hills, Road No. 12\n'
-                          'Hyderabad, Telangana - 500034',
+                          'Sierra - I - 701, Rajapushpa Atria,\n'
+                          'Kokapet, Hyderabad, Telangana - 500075',
                         ),
                       ),
                       ListTile(
@@ -173,8 +173,8 @@ class AboutScreen extends StatelessWidget {
                       ListTile(
                         leading: Icon(Icons.phone, color: AppColors.primary),
                         title: const Text('Phone'),
-                        subtitle: const Text('+91 98765 43210'),
-                        onTap: () => _launchUrl('tel:+919876543210'),
+                        subtitle: const Text('+91 7995314630'),
+                        onTap: () => _launchUrl('tel:+917995314630'),
                       ),
                     ],
                   ),
