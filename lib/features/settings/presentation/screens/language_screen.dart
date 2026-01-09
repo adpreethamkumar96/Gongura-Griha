@@ -36,36 +36,6 @@ class _LanguageScreenState extends State<LanguageScreen> {
       'nativeName': 'తెలుగు',
       'flag': '🇮🇳',
     },
-    {
-      'code': 'ta',
-      'name': 'Tamil',
-      'nativeName': 'தமிழ்',
-      'flag': '🇮🇳',
-    },
-    {
-      'code': 'kn',
-      'name': 'Kannada',
-      'nativeName': 'ಕನ್ನಡ',
-      'flag': '🇮🇳',
-    },
-    {
-      'code': 'ml',
-      'name': 'Malayalam',
-      'nativeName': 'മലയാളം',
-      'flag': '🇮🇳',
-    },
-    {
-      'code': 'mr',
-      'name': 'Marathi',
-      'nativeName': 'मराठी',
-      'flag': '🇮🇳',
-    },
-    {
-      'code': 'bn',
-      'name': 'Bengali',
-      'nativeName': 'বাংলা',
-      'flag': '🇮🇳',
-    },
   ];
 
   @override
