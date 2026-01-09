@@ -28,54 +28,118 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   bool _isWishlisted = false;
   bool _isAddingToCart = false;
 
-  // Mock product data (would come from API based on slug)
-  final Map<String, dynamic> _product = {
-    'name': 'Classic Gongura Pickle',
-    'description':
-        'Our signature gongura pickle made with fresh, hand-picked gongura leaves from Andhra Pradesh. This tangy and spicy pickle is prepared using traditional recipes passed down through generations. Perfect with hot rice, rotis, or as a side dish.',
-    'price': 299.0,
-    'originalPrice': 399.0,
-    'images': [
-      'https://via.placeholder.com/400x400/4CAF50/FFFFFF?text=Gongura+1',
-      'https://via.placeholder.com/400x400/66BB6A/FFFFFF?text=Gongura+2',
-      'https://via.placeholder.com/400x400/81C784/FFFFFF?text=Gongura+3',
-    ],
-    'isVeg': true,
-    'rating': 4.5,
-    'reviews': 128,
-    'inStock': true,
-    'sizes': [
-      {'weight': '250g', 'price': 299.0, 'originalPrice': 399.0},
-      {'weight': '500g', 'price': 549.0, 'originalPrice': 699.0},
-      {'weight': '1kg', 'price': 999.0, 'originalPrice': 1299.0},
-    ],
-    'highlights': [
-      'Made with 100% natural ingredients',
-      'No preservatives or artificial colors',
-      'Traditional Andhra recipe',
-      'Fresh gongura leaves',
-      'Shelf life: 6 months',
-    ],
-    'ingredients': 'Gongura leaves, Red chillies, Mustard seeds, Fenugreek seeds, Garlic, Salt, Sesame oil',
-    'nutritionInfo': {
-      'calories': '45 kcal',
-      'protein': '1g',
-      'carbs': '5g',
-      'fat': '2.5g',
-      'sodium': '580mg',
+  // Product data mapped by slug
+  static final Map<String, Map<String, dynamic>> _productsData = {
+    'traditional-gongura-pachadi': {
+      'name': 'Traditional Gongura Pachadi',
+      'description':
+          'Authentic Andhra-style gongura pachadi made with fresh, hand-picked gongura leaves. This tangy and spicy pachadi is prepared using traditional recipes passed down through generations. Perfect accompaniment for hot rice and rotis.',
+      'price': 199.0,
+      'images': [
+        'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=400',
+        'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=400',
+        'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=400',
+      ],
+      'isVeg': true,
+      'inStock': true,
+      'sizes': [
+        {'weight': '250g', 'price': 199.0},
+        {'weight': '500g', 'price': 379.0},
+        {'weight': '1kg', 'price': 699.0},
+      ],
+      'highlights': [
+        {'icon': Icons.eco, 'text': 'Made with 100% natural ingredients'},
+        {'icon': Icons.verified, 'text': 'No preservatives or artificial colors'},
+        {'icon': Icons.menu_book, 'text': 'Traditional Andhra recipe'},
+        {'icon': Icons.spa, 'text': 'Fresh gongura leaves from Andhra Pradesh'},
+        {'icon': Icons.schedule, 'text': 'Shelf life: 6 months'},
+      ],
+      'ingredients': 'Gongura leaves, Red chillies, Mustard seeds, Fenugreek seeds, Garlic, Salt, Sesame oil',
+      'nutritionInfo': {
+        'calories': '45 kcal',
+        'protein': '1g',
+        'carbs': '5g',
+        'fat': '2.5g',
+        'sodium': '580mg',
+      },
+    },
+    'classic-gongura-chutney': {
+      'name': 'Classic Gongura Chutney',
+      'description':
+          'A delicious gongura chutney with the perfect blend of tangy and spicy flavors. Made fresh with tender gongura leaves, this chutney adds a burst of authentic South Indian taste to any meal. Ideal for dosas, idlis, and rice.',
+      'price': 149.0,
+      'images': [
+        'https://images.unsplash.com/photo-1546470427-227c7aa45214?w=400',
+        'https://images.unsplash.com/photo-1546470427-227c7aa45214?w=400',
+        'https://images.unsplash.com/photo-1546470427-227c7aa45214?w=400',
+      ],
+      'isVeg': true,
+      'inStock': true,
+      'sizes': [
+        {'weight': '200g', 'price': 149.0},
+        {'weight': '400g', 'price': 279.0},
+        {'weight': '800g', 'price': 529.0},
+      ],
+      'highlights': [
+        {'icon': Icons.balance, 'text': 'Perfect tangy-spicy balance'},
+        {'icon': Icons.verified, 'text': 'No artificial flavors or colors'},
+        {'icon': Icons.grain, 'text': 'Freshly ground spices'},
+        {'icon': Icons.back_hand, 'text': 'Handcrafted in small batches'},
+        {'icon': Icons.schedule, 'text': 'Shelf life: 4 months'},
+      ],
+      'ingredients': 'Gongura leaves, Green chillies, Tamarind, Cumin seeds, Garlic, Salt, Groundnut oil',
+      'nutritionInfo': {
+        'calories': '38 kcal',
+        'protein': '0.8g',
+        'carbs': '4g',
+        'fat': '2g',
+        'sodium': '520mg',
+      },
+    },
+    'spicy-gongura-podi': {
+      'name': 'Spicy Gongura Podi',
+      'description':
+          'A flavorful dry powder made from sun-dried gongura leaves and aromatic spices. This versatile podi can be mixed with rice and ghee, sprinkled on dosas, or used as a seasoning. A must-have for gongura lovers!',
+      'price': 139.0,
+      'images': [
+        'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+        'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+        'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
+      ],
+      'isVeg': true,
+      'inStock': true,
+      'sizes': [
+        {'weight': '100g', 'price': 139.0},
+        {'weight': '250g', 'price': 319.0},
+        {'weight': '500g', 'price': 599.0},
+      ],
+      'highlights': [
+        {'icon': Icons.wb_sunny, 'text': 'Sun-dried gongura leaves'},
+        {'icon': Icons.grain, 'text': 'Coarsely ground for best texture'},
+        {'icon': Icons.favorite, 'text': 'Rich in iron and vitamins'},
+        {'icon': Icons.schedule, 'text': 'Long shelf life - 8 months'},
+        {'icon': Icons.auto_awesome, 'text': 'Versatile usage'},
+      ],
+      'ingredients': 'Dried gongura leaves, Red chillies, Urad dal, Chana dal, Cumin, Garlic, Salt',
+      'nutritionInfo': {
+        'calories': '52 kcal',
+        'protein': '2g',
+        'carbs': '6g',
+        'fat': '3g',
+        'sodium': '480mg',
+      },
     },
   };
+
+  Map<String, dynamic> get _product {
+    return _productsData[widget.slug] ?? _productsData['traditional-gongura-pachadi']!;
+  }
 
   int _currentImageIndex = 0;
 
   double get _currentPrice {
     final sizes = _product['sizes'] as List;
     return sizes[_selectedSizeIndex]['price'] as double;
-  }
-
-  double? get _currentOriginalPrice {
-    final sizes = _product['sizes'] as List;
-    return sizes[_selectedSizeIndex]['originalPrice'] as double?;
   }
 
   @override
@@ -103,8 +167,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 _buildIngredients(),
                 const Divider(height: 1),
                 _buildNutritionInfo(),
-                const Divider(height: 1),
-                _buildReviews(),
                 const SizedBox(height: 100), // Space for bottom bar
               ],
             ),
@@ -237,27 +299,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ),
             ),
-
-            // Discount Badge
-            if (_currentOriginalPrice != null)
-              Positioned(
-                top: 100,
-                right: 16,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.discount,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    '${Formatters.calculateDiscountPercentage(_currentOriginalPrice!, _currentPrice)}% OFF',
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
           ],
         ),
       ),
@@ -275,65 +316,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             _product['name'] as String,
             style: AppTextStyles.headlineSmall,
           ),
-          const SizedBox(height: 8),
-
-          // Rating
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '${_product['rating']}',
-                      style: AppTextStyles.labelMedium.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.star, size: 14, color: Colors.white),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '${_product['reviews']} reviews',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
           const SizedBox(height: 12),
 
           // Price
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                Formatters.formatCurrency(_currentPrice),
-                style: AppTextStyles.headlineMedium.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (_currentOriginalPrice != null) ...[
-                const SizedBox(width: 8),
-                Text(
-                  Formatters.formatCurrency(_currentOriginalPrice!),
-                  style: AppTextStyles.bodyLarge.copyWith(
-                    color: AppColors.textTertiary,
-                    decoration: TextDecoration.lineThrough,
-                  ),
-                ),
-              ],
-            ],
+          Text(
+            Formatters.formatCurrency(_currentPrice),
+            style: AppTextStyles.headlineMedium.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -474,26 +465,36 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         children: [
           Text('Highlights', style: AppTextStyles.titleSmall),
           const SizedBox(height: 12),
-          ...highlights.map((highlight) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.check_circle,
-                      size: 18,
+          ...highlights.map((highlight) {
+            final highlightData = highlight as Map<String, dynamic>;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withAlpha(26),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      highlightData['icon'] as IconData,
+                      size: 20,
                       color: AppColors.primary,
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        highlight as String,
-                        style: AppTextStyles.bodyMedium,
-                      ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      highlightData['text'] as String,
+                      style: AppTextStyles.bodyMedium,
                     ),
-                  ],
-                ),
-              )),
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -556,111 +557,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               );
             }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReviews() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Customer Reviews', style: AppTextStyles.titleSmall),
-              TextButton(
-                onPressed: () {
-                  // View all reviews
-                },
-                child: const Text('See All'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Sample review
-          _buildReviewCard(
-            name: 'Ramesh K.',
-            rating: 5,
-            date: '2 weeks ago',
-            review:
-                'Amazing taste! Reminds me of my grandmother\'s pickle. Will definitely order again.',
-          ),
-          const SizedBox(height: 12),
-          _buildReviewCard(
-            name: 'Priya S.',
-            rating: 4,
-            date: '1 month ago',
-            review:
-                'Very good quality and authentic taste. A bit too spicy for my kids though.',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReviewCard({
-    required String name,
-    required int rating,
-    required String date,
-    required String review,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundSecondary,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: AppColors.primary,
-                child: Text(
-                  name[0],
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(name, style: AppTextStyles.labelMedium),
-                    Text(
-                      date,
-                      style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.textTertiary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                children: List.generate(
-                  5,
-                  (index) => Icon(
-                    index < rating ? Icons.star : Icons.star_border,
-                    size: 16,
-                    color: AppColors.rating,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            review,
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textSecondary,
-            ),
           ),
         ],
       ),

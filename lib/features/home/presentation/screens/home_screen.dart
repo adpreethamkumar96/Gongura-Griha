@@ -53,18 +53,21 @@ class _HomeScreenState extends State<HomeScreen> {
       'image': 'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=400',
       'price': 199.0,
       'isVeg': true,
+      'slug': 'traditional-gongura-pachadi',
     },
     {
       'name': 'Classic Gongura Chutney',
       'image': 'https://images.unsplash.com/photo-1546470427-227c7aa45214?w=400',
       'price': 149.0,
       'isVeg': true,
+      'slug': 'classic-gongura-chutney',
     },
     {
       'name': 'Spicy Gongura Podi',
       'image': 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400',
       'price': 139.0,
       'isVeg': true,
+      'slug': 'spicy-gongura-podi',
     },
   ];
 
@@ -332,7 +335,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          final product = _featuredProducts[index % _featuredProducts.length];
+          final product = _featuredProducts[index];
           return ProductCard(
             name: product['name'] as String,
             imageUrl: product['image'] as String,
@@ -342,7 +345,7 @@ class _HomeScreenState extends State<HomeScreen> {
             reviewCount: product['reviews'] as int?,
             isVeg: product['isVeg'] as bool,
             onTap: () {
-              context.push(AppRoutes.getProductDetailRoute('sample-product'));
+              context.push(AppRoutes.getProductDetailRoute(product['slug'] as String));
             },
             onAddToCart: () {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -358,7 +361,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           );
         },
-        childCount: 4,
+        childCount: _featuredProducts.length,
       ),
     );
   }
