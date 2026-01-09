@@ -33,16 +33,19 @@ class _HomeScreenState extends State<HomeScreen> {
       'title': 'Pure Gongura Delights',
       'subtitle': 'Authentic Andhra Gongura Flavors',
       'color': AppColors.primaryLight,
+      'icon': Icons.eco,
     },
     {
       'title': '100% Vegetarian',
       'subtitle': 'Fresh Gongura Leaf Products',
       'color': AppColors.accentLight,
+      'icon': Icons.spa,
     },
     {
       'title': 'Gongura Special',
       'subtitle': 'Free delivery on orders above ₹499',
       'color': const Color(0xFFE8F5E9),
+      'icon': Icons.local_shipping,
     },
   ];
 
@@ -229,7 +232,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
-                  const Text('🫙', style: TextStyle(fontSize: 60)),
+                  Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withAlpha(40),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Icon(
+                        banner['icon'] as IconData,
+                        size: 36,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             );
