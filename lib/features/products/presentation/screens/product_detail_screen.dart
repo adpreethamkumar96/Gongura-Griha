@@ -606,50 +606,49 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Nutrition Info (per $weight)', style: AppTextStyles.titleSmall),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: nutrition.map((item) {
               final nutritionData = item as Map<String, dynamic>;
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.backgroundSecondary,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.divider),
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withAlpha(26),
-                        shape: BoxShape.circle,
+              return Column(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withAlpha(26),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.primary.withAlpha(50),
+                        width: 2,
                       ),
+                    ),
+                    child: Center(
                       child: Icon(
                         nutritionData['icon'] as IconData,
-                        size: 20,
+                        size: 24,
                         color: AppColors.primary,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      nutritionData['value'] as String,
-                      style: AppTextStyles.titleSmall.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    nutritionData['value'] as String,
+                    style: AppTextStyles.labelMedium.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      nutritionData['label'] as String,
-                      style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    nutritionData['label'] as String,
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: AppColors.textSecondary,
+                      fontSize: 10,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               );
             }).toList(),
           ),
