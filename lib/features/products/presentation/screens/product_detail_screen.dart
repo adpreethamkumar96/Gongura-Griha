@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Product Detail Screen
 ///
@@ -45,12 +46,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
-  // Product data mapped by slug
-  static final Map<String, Map<String, dynamic>> _productsData = {
+  // Product data mapped by slug with localized strings
+  Map<String, Map<String, dynamic>> _getProductsData(AppLocalizations l10n) => {
     'traditional-gongura-pachadi': {
-      'name': 'Traditional Gongura Pachadi',
-      'description':
-          'Authentic Andhra-style gongura pachadi made with fresh, hand-picked gongura leaves. This tangy and spicy pachadi is prepared using traditional recipes passed down through generations. Perfect accompaniment for hot rice and rotis.',
+      'name': l10n.traditionalGonguraPachadi,
+      'description': l10n.pachadiDescription,
       'price': 199.0,
       'images': [
         'assets/images/GonguraPickle.png',
@@ -65,11 +65,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           'icon': Icons.eco,
           'sizeLabel': 'S',
           'nutritionInfo': [
-            {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '112 kcal'},
-            {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '2.5g'},
-            {'icon': Icons.bakery_dining, 'label': 'Carbs', 'value': '12.5g'},
-            {'icon': Icons.opacity, 'label': 'Fat', 'value': '6.3g'},
-            {'icon': Icons.water_drop, 'label': 'Sodium', 'value': '1450mg'},
+            {'icon': Icons.local_fire_department, 'label': l10n.calories, 'value': '112 kcal'},
+            {'icon': Icons.fitness_center, 'label': l10n.protein, 'value': '2.5g'},
+            {'icon': Icons.bakery_dining, 'label': l10n.carbs, 'value': '12.5g'},
+            {'icon': Icons.opacity, 'label': l10n.fat, 'value': '6.3g'},
+            {'icon': Icons.water_drop, 'label': l10n.sodium, 'value': '1450mg'},
           ],
         },
         {
@@ -78,11 +78,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           'icon': Icons.nature,
           'sizeLabel': 'M',
           'nutritionInfo': [
-            {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '225 kcal'},
-            {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '5g'},
-            {'icon': Icons.bakery_dining, 'label': 'Carbs', 'value': '25g'},
-            {'icon': Icons.opacity, 'label': 'Fat', 'value': '12.5g'},
-            {'icon': Icons.water_drop, 'label': 'Sodium', 'value': '2900mg'},
+            {'icon': Icons.local_fire_department, 'label': l10n.calories, 'value': '225 kcal'},
+            {'icon': Icons.fitness_center, 'label': l10n.protein, 'value': '5g'},
+            {'icon': Icons.bakery_dining, 'label': l10n.carbs, 'value': '25g'},
+            {'icon': Icons.opacity, 'label': l10n.fat, 'value': '12.5g'},
+            {'icon': Icons.water_drop, 'label': l10n.sodium, 'value': '2900mg'},
           ],
         },
         {
@@ -91,35 +91,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           'icon': Icons.forest,
           'sizeLabel': 'L',
           'nutritionInfo': [
-            {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '450 kcal'},
-            {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '10g'},
-            {'icon': Icons.bakery_dining, 'label': 'Carbs', 'value': '50g'},
-            {'icon': Icons.opacity, 'label': 'Fat', 'value': '25g'},
-            {'icon': Icons.water_drop, 'label': 'Sodium', 'value': '5800mg'},
+            {'icon': Icons.local_fire_department, 'label': l10n.calories, 'value': '450 kcal'},
+            {'icon': Icons.fitness_center, 'label': l10n.protein, 'value': '10g'},
+            {'icon': Icons.bakery_dining, 'label': l10n.carbs, 'value': '50g'},
+            {'icon': Icons.opacity, 'label': l10n.fat, 'value': '25g'},
+            {'icon': Icons.water_drop, 'label': l10n.sodium, 'value': '5800mg'},
           ],
         },
       ],
       'highlights': [
-        {'icon': Icons.eco, 'text': 'Made with 100% natural ingredients'},
-        {'icon': Icons.verified, 'text': 'No preservatives or artificial colors'},
-        {'icon': Icons.menu_book, 'text': 'Traditional Andhra recipe'},
-        {'icon': Icons.spa, 'text': 'Fresh gongura leaves from Andhra Pradesh'},
-        {'icon': Icons.schedule, 'text': 'Shelf life: 6 months'},
+        {'icon': Icons.eco, 'text': l10n.highlight100Natural},
+        {'icon': Icons.verified, 'text': l10n.highlightNoPreservatives},
+        {'icon': Icons.menu_book, 'text': l10n.highlightTraditionalRecipe},
+        {'icon': Icons.spa, 'text': l10n.highlightFreshGongura},
+        {'icon': Icons.schedule, 'text': l10n.highlightShelfLife6Months},
       ],
       'ingredients': [
-        {'icon': Icons.eco, 'name': 'Gongura Leaves'},
-        {'icon': Icons.whatshot, 'name': 'Red Chillies'},
-        {'icon': Icons.grain, 'name': 'Mustard Seeds'},
-        {'icon': Icons.grass, 'name': 'Fenugreek Seeds'},
-        {'icon': Icons.restaurant, 'name': 'Garlic'},
-        {'icon': Icons.water_drop, 'name': 'Salt'},
-        {'icon': Icons.opacity, 'name': 'Sesame Oil'},
+        {'icon': Icons.eco, 'name': l10n.gonguraLeaves},
+        {'icon': Icons.whatshot, 'name': l10n.redChillies},
+        {'icon': Icons.grain, 'name': l10n.mustardSeeds},
+        {'icon': Icons.grass, 'name': l10n.fenugreekSeeds},
+        {'icon': Icons.restaurant, 'name': l10n.garlic},
+        {'icon': Icons.water_drop, 'name': l10n.salt},
+        {'icon': Icons.opacity, 'name': l10n.sesameOil},
       ],
     },
     'classic-gongura-chutney': {
-      'name': 'Classic Gongura Chutney',
-      'description':
-          'A delicious gongura chutney with the perfect blend of tangy and spicy flavors. Made fresh with tender gongura leaves, this chutney adds a burst of authentic South Indian taste to any meal. Ideal for dosas, idlis, and rice.',
+      'name': l10n.classicGonguraChutney,
+      'description': l10n.chutneyDescription,
       'price': 149.0,
       'images': [
         'assets/images/GonguraChutney.png',
@@ -134,11 +133,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           'icon': Icons.eco,
           'sizeLabel': 'S',
           'nutritionInfo': [
-            {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '76 kcal'},
-            {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '1.6g'},
-            {'icon': Icons.bakery_dining, 'label': 'Carbs', 'value': '8g'},
-            {'icon': Icons.opacity, 'label': 'Fat', 'value': '4g'},
-            {'icon': Icons.water_drop, 'label': 'Sodium', 'value': '1040mg'},
+            {'icon': Icons.local_fire_department, 'label': l10n.calories, 'value': '76 kcal'},
+            {'icon': Icons.fitness_center, 'label': l10n.protein, 'value': '1.6g'},
+            {'icon': Icons.bakery_dining, 'label': l10n.carbs, 'value': '8g'},
+            {'icon': Icons.opacity, 'label': l10n.fat, 'value': '4g'},
+            {'icon': Icons.water_drop, 'label': l10n.sodium, 'value': '1040mg'},
           ],
         },
         {
@@ -147,11 +146,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           'icon': Icons.nature,
           'sizeLabel': 'M',
           'nutritionInfo': [
-            {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '152 kcal'},
-            {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '3.2g'},
-            {'icon': Icons.bakery_dining, 'label': 'Carbs', 'value': '16g'},
-            {'icon': Icons.opacity, 'label': 'Fat', 'value': '8g'},
-            {'icon': Icons.water_drop, 'label': 'Sodium', 'value': '2080mg'},
+            {'icon': Icons.local_fire_department, 'label': l10n.calories, 'value': '152 kcal'},
+            {'icon': Icons.fitness_center, 'label': l10n.protein, 'value': '3.2g'},
+            {'icon': Icons.bakery_dining, 'label': l10n.carbs, 'value': '16g'},
+            {'icon': Icons.opacity, 'label': l10n.fat, 'value': '8g'},
+            {'icon': Icons.water_drop, 'label': l10n.sodium, 'value': '2080mg'},
           ],
         },
         {
@@ -160,35 +159,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           'icon': Icons.forest,
           'sizeLabel': 'L',
           'nutritionInfo': [
-            {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '304 kcal'},
-            {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '6.4g'},
-            {'icon': Icons.bakery_dining, 'label': 'Carbs', 'value': '32g'},
-            {'icon': Icons.opacity, 'label': 'Fat', 'value': '16g'},
-            {'icon': Icons.water_drop, 'label': 'Sodium', 'value': '4160mg'},
+            {'icon': Icons.local_fire_department, 'label': l10n.calories, 'value': '304 kcal'},
+            {'icon': Icons.fitness_center, 'label': l10n.protein, 'value': '6.4g'},
+            {'icon': Icons.bakery_dining, 'label': l10n.carbs, 'value': '32g'},
+            {'icon': Icons.opacity, 'label': l10n.fat, 'value': '16g'},
+            {'icon': Icons.water_drop, 'label': l10n.sodium, 'value': '4160mg'},
           ],
         },
       ],
       'highlights': [
-        {'icon': Icons.balance, 'text': 'Perfect tangy-spicy balance'},
-        {'icon': Icons.verified, 'text': 'No artificial flavors or colors'},
-        {'icon': Icons.grain, 'text': 'Freshly ground spices'},
-        {'icon': Icons.back_hand, 'text': 'Handcrafted in small batches'},
-        {'icon': Icons.schedule, 'text': 'Shelf life: 4 months'},
+        {'icon': Icons.balance, 'text': l10n.highlightTangySpicy},
+        {'icon': Icons.verified, 'text': l10n.highlightNoArtificial},
+        {'icon': Icons.grain, 'text': l10n.highlightFreshSpices},
+        {'icon': Icons.back_hand, 'text': l10n.highlightHandcrafted},
+        {'icon': Icons.schedule, 'text': l10n.highlightShelfLife4Months},
       ],
       'ingredients': [
-        {'icon': Icons.eco, 'name': 'Gongura Leaves'},
-        {'icon': Icons.local_fire_department, 'name': 'Green Chillies'},
-        {'icon': Icons.nature, 'name': 'Tamarind'},
-        {'icon': Icons.grain, 'name': 'Cumin Seeds'},
-        {'icon': Icons.restaurant, 'name': 'Garlic'},
-        {'icon': Icons.water_drop, 'name': 'Salt'},
-        {'icon': Icons.opacity, 'name': 'Groundnut Oil'},
+        {'icon': Icons.eco, 'name': l10n.gonguraLeaves},
+        {'icon': Icons.local_fire_department, 'name': l10n.greenChillies},
+        {'icon': Icons.nature, 'name': l10n.tamarind},
+        {'icon': Icons.grain, 'name': l10n.cuminSeeds},
+        {'icon': Icons.restaurant, 'name': l10n.garlic},
+        {'icon': Icons.water_drop, 'name': l10n.salt},
+        {'icon': Icons.opacity, 'name': l10n.groundnutOil},
       ],
     },
     'spicy-gongura-podi': {
-      'name': 'Spicy Gongura Podi',
-      'description':
-          'A flavorful dry powder made from sun-dried gongura leaves and aromatic spices. This versatile podi can be mixed with rice and ghee, sprinkled on dosas, or used as a seasoning. A must-have for gongura lovers!',
+      'name': l10n.spicyGonguraPodi,
+      'description': l10n.podiDescription,
       'price': 139.0,
       'images': [
         'assets/images/GonguraPowder.png',
@@ -203,11 +201,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           'icon': Icons.eco,
           'sizeLabel': 'S',
           'nutritionInfo': [
-            {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '52 kcal'},
-            {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '2g'},
-            {'icon': Icons.bakery_dining, 'label': 'Carbs', 'value': '6g'},
-            {'icon': Icons.opacity, 'label': 'Fat', 'value': '3g'},
-            {'icon': Icons.water_drop, 'label': 'Sodium', 'value': '480mg'},
+            {'icon': Icons.local_fire_department, 'label': l10n.calories, 'value': '52 kcal'},
+            {'icon': Icons.fitness_center, 'label': l10n.protein, 'value': '2g'},
+            {'icon': Icons.bakery_dining, 'label': l10n.carbs, 'value': '6g'},
+            {'icon': Icons.opacity, 'label': l10n.fat, 'value': '3g'},
+            {'icon': Icons.water_drop, 'label': l10n.sodium, 'value': '480mg'},
           ],
         },
         {
@@ -216,11 +214,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           'icon': Icons.nature,
           'sizeLabel': 'M',
           'nutritionInfo': [
-            {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '130 kcal'},
-            {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '5g'},
-            {'icon': Icons.bakery_dining, 'label': 'Carbs', 'value': '15g'},
-            {'icon': Icons.opacity, 'label': 'Fat', 'value': '7.5g'},
-            {'icon': Icons.water_drop, 'label': 'Sodium', 'value': '1200mg'},
+            {'icon': Icons.local_fire_department, 'label': l10n.calories, 'value': '130 kcal'},
+            {'icon': Icons.fitness_center, 'label': l10n.protein, 'value': '5g'},
+            {'icon': Icons.bakery_dining, 'label': l10n.carbs, 'value': '15g'},
+            {'icon': Icons.opacity, 'label': l10n.fat, 'value': '7.5g'},
+            {'icon': Icons.water_drop, 'label': l10n.sodium, 'value': '1200mg'},
           ],
         },
         {
@@ -229,79 +227,84 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           'icon': Icons.forest,
           'sizeLabel': 'L',
           'nutritionInfo': [
-            {'icon': Icons.local_fire_department, 'label': 'Calories', 'value': '260 kcal'},
-            {'icon': Icons.fitness_center, 'label': 'Protein', 'value': '10g'},
-            {'icon': Icons.bakery_dining, 'label': 'Carbs', 'value': '30g'},
-            {'icon': Icons.opacity, 'label': 'Fat', 'value': '15g'},
-            {'icon': Icons.water_drop, 'label': 'Sodium', 'value': '2400mg'},
+            {'icon': Icons.local_fire_department, 'label': l10n.calories, 'value': '260 kcal'},
+            {'icon': Icons.fitness_center, 'label': l10n.protein, 'value': '10g'},
+            {'icon': Icons.bakery_dining, 'label': l10n.carbs, 'value': '30g'},
+            {'icon': Icons.opacity, 'label': l10n.fat, 'value': '15g'},
+            {'icon': Icons.water_drop, 'label': l10n.sodium, 'value': '2400mg'},
           ],
         },
       ],
       'highlights': [
-        {'icon': Icons.wb_sunny, 'text': 'Sun-dried gongura leaves'},
-        {'icon': Icons.grain, 'text': 'Coarsely ground for best texture'},
-        {'icon': Icons.favorite, 'text': 'Rich in iron and vitamins'},
-        {'icon': Icons.schedule, 'text': 'Long shelf life - 8 months'},
-        {'icon': Icons.auto_awesome, 'text': 'Versatile usage'},
+        {'icon': Icons.wb_sunny, 'text': l10n.highlightSunDried},
+        {'icon': Icons.grain, 'text': l10n.highlightCoarseGround},
+        {'icon': Icons.favorite, 'text': l10n.highlightRichInIron},
+        {'icon': Icons.schedule, 'text': l10n.highlightShelfLife8Months},
+        {'icon': Icons.auto_awesome, 'text': l10n.highlightVersatile},
       ],
       'ingredients': [
-        {'icon': Icons.eco, 'name': 'Dried Gongura Leaves'},
-        {'icon': Icons.whatshot, 'name': 'Red Chillies'},
-        {'icon': Icons.egg_alt, 'name': 'Urad Dal'},
-        {'icon': Icons.circle, 'name': 'Chana Dal'},
-        {'icon': Icons.grain, 'name': 'Cumin'},
-        {'icon': Icons.restaurant, 'name': 'Garlic'},
-        {'icon': Icons.water_drop, 'name': 'Salt'},
+        {'icon': Icons.eco, 'name': l10n.driedGonguraLeaves},
+        {'icon': Icons.whatshot, 'name': l10n.redChillies},
+        {'icon': Icons.egg_alt, 'name': l10n.uradDal},
+        {'icon': Icons.circle, 'name': l10n.chanaDal},
+        {'icon': Icons.grain, 'name': l10n.cumin},
+        {'icon': Icons.restaurant, 'name': l10n.garlic},
+        {'icon': Icons.water_drop, 'name': l10n.salt},
       ],
     },
   };
 
-  Map<String, dynamic> get _product {
-    return _productsData[widget.slug] ?? _productsData['traditional-gongura-pachadi']!;
+  Map<String, dynamic> _getProduct(AppLocalizations l10n) {
+    final productsData = _getProductsData(l10n);
+    return productsData[widget.slug] ?? productsData['traditional-gongura-pachadi']!;
   }
 
   int _currentImageIndex = 0;
 
-  double get _currentPrice {
-    final sizes = _product['sizes'] as List;
+  double _getCurrentPrice(AppLocalizations l10n) {
+    final product = _getProduct(l10n);
+    final sizes = product['sizes'] as List;
     return sizes[_selectedSizeIndex]['price'] as double;
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final product = _getProduct(l10n);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
           // App Bar with Image
-          _buildSliverAppBar(),
+          _buildSliverAppBar(product),
 
           // Product Details
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildProductInfo(),
+                _buildProductInfo(product, l10n),
                 const Divider(height: 1),
-                _buildSizeSelector(),
+                _buildSizeSelector(product, l10n),
                 const Divider(height: 1),
-                _buildHighlights(),
+                _buildHighlights(product, l10n),
                 const Divider(height: 1),
-                _buildIngredients(),
+                _buildIngredients(product, l10n),
                 const Divider(height: 1),
-                _buildNutritionInfo(),
+                _buildNutritionInfo(product, l10n),
                 const SizedBox(height: 100), // Space for bottom bar
               ],
             ),
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomBar(),
+      bottomNavigationBar: _buildBottomBar(l10n),
     );
   }
 
-  Widget _buildSliverAppBar() {
-    final images = _product['images'] as List;
+  Widget _buildSliverAppBar(Map<String, dynamic> product) {
+    final images = product['images'] as List;
 
     return SliverAppBar(
       expandedHeight: 350,
@@ -359,7 +362,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 setState(() => _currentImageIndex = index);
               },
               itemBuilder: (context, index) {
-                final isAsset = _product['isAsset'] as bool? ?? false;
+                final isAsset = product['isAsset'] as bool? ?? false;
                 return Container(
                   color: AppColors.backgroundSecondary,
                   child: isAsset
@@ -423,7 +426,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(
-                    color: _product['isVeg'] as bool
+                    color: product['isVeg'] as bool
                         ? AppColors.veg
                         : AppColors.nonVeg,
                   ),
@@ -431,7 +434,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 child: Icon(
                   Icons.circle,
                   size: 12,
-                  color: _product['isVeg'] as bool
+                  color: product['isVeg'] as bool
                       ? AppColors.veg
                       : AppColors.nonVeg,
                 ),
@@ -443,7 +446,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildProductInfo() {
+  Widget _buildProductInfo(Map<String, dynamic> product, AppLocalizations l10n) {
+    final currentPrice = _getCurrentPrice(l10n);
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -451,14 +455,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         children: [
           // Name
           Text(
-            _product['name'] as String,
+            product['name'] as String,
             style: AppTextStyles.headlineSmall,
           ),
           const SizedBox(height: 12),
 
           // Price
           Text(
-            Formatters.formatCurrency(_currentPrice),
+            Formatters.formatCurrency(currentPrice),
             style: AppTextStyles.headlineMedium.copyWith(
               color: AppColors.primary,
               fontWeight: FontWeight.bold,
@@ -468,7 +472,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
           // Description
           Text(
-            _product['description'] as String,
+            product['description'] as String,
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.textSecondary,
               height: 1.5,
@@ -479,15 +483,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildSizeSelector() {
-    final sizes = _product['sizes'] as List;
+  Widget _buildSizeSelector(Map<String, dynamic> product, AppLocalizations l10n) {
+    final sizes = product['sizes'] as List;
 
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Select Size', style: AppTextStyles.titleSmall),
+          Text(l10n.selectSize, style: AppTextStyles.titleSmall),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -557,15 +561,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildHighlights() {
-    final highlights = _product['highlights'] as List;
+  Widget _buildHighlights(Map<String, dynamic> product, AppLocalizations l10n) {
+    final highlights = product['highlights'] as List;
 
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Highlights', style: AppTextStyles.titleSmall),
+          Text(l10n.highlights, style: AppTextStyles.titleSmall),
           const SizedBox(height: 12),
           ...highlights.map((highlight) {
             final highlightData = highlight as Map<String, dynamic>;
@@ -602,15 +606,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildIngredients() {
-    final ingredients = _product['ingredients'] as List;
+  Widget _buildIngredients(Map<String, dynamic> product, AppLocalizations l10n) {
+    final ingredients = product['ingredients'] as List;
 
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Ingredients', style: AppTextStyles.titleSmall),
+          Text(l10n.ingredients, style: AppTextStyles.titleSmall),
           const SizedBox(height: 12),
           Wrap(
             spacing: 12,
@@ -650,8 +654,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildNutritionInfo() {
-    final sizes = _product['sizes'] as List;
+  Widget _buildNutritionInfo(Map<String, dynamic> product, AppLocalizations l10n) {
+    final sizes = product['sizes'] as List;
     final selectedSize = sizes[_selectedSizeIndex] as Map<String, dynamic>;
     final nutrition = selectedSize['nutritionInfo'] as List;
     final weight = selectedSize['weight'] as String;
@@ -661,7 +665,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Nutrition Info (per $weight)', style: AppTextStyles.titleSmall),
+          Text(l10n.nutritionInfoPer(weight), style: AppTextStyles.titleSmall),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -713,7 +717,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildBottomBar() {
+  Widget _buildBottomBar(AppLocalizations l10n) {
+    final currentPrice = _getCurrentPrice(l10n);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -735,13 +740,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Price',
+                    l10n.price,
                     style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.textSecondary,
                     ),
                   ),
                   Text(
-                    Formatters.formatCurrency(_currentPrice),
+                    Formatters.formatCurrency(currentPrice),
                     style: AppTextStyles.headlineSmall.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,

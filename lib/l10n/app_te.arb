@@ -1,0 +1,334 @@
+{
+  "@@locale": "te",
+
+  "appName": "గోంగూర గృహ",
+  "appTagline": "ప్రామాణిక ఆంధ్ర పచ్చళ్ళు",
+
+  "home": "హోమ్",
+  "orders": "ఆర్డర్లు",
+  "wishlist": "విష్‌లిస్ట్",
+  "profile": "ప్రొఫైల్",
+
+  "deliverTo": "డెలివరీ చిరునామా",
+  "searchPickles": "పచ్చళ్ళు వెతకండి...",
+  "shopNow": "ఇప్పుడే కొనండి",
+  "categories": "వర్గాలు",
+  "featuredProducts": "ప్రత్యేక ఉత్పత్తులు",
+  "viewAll": "అన్నీ చూడండి",
+
+  "pachadi": "పచ్చడి",
+  "chutney": "చట్నీ",
+  "powder": "పొడి",
+
+  "bannerTitle1": "స్వచ్ఛమైన గోంగూర రుచులు",
+  "bannerSubtitle1": "ప్రామాణిక ఆంధ్ర గోంగూర రుచులు",
+  "bannerTitle2": "100% శాకాహారం",
+  "bannerSubtitle2": "తాజా గోంగూర ఆకు ఉత్పత్తులు",
+  "bannerTitle3": "గోంగూర స్పెషల్",
+  "bannerSubtitle3": "₹499 పైన ఆర్డర్లపై ఉచిత డెలివరీ",
+
+  "traditionalGonguraPachadi": "సంప్రదాయ గోంగూర పచ్చడి",
+  "classicGonguraChutney": "క్లాసిక్ గోంగూర చట్నీ",
+  "spicyGonguraPodi": "కారంగా గోంగూర పొడి",
+
+  "pachadiDescription": "తాజా, చేతితో ఏరిన గోంగూర ఆకులతో తయారు చేసిన ప్రామాణిక ఆంధ్ర శైలి గోంగూర పచ్చడి. ఈ పుల్లని మరియు కారమైన పచ్చడి తరతరాలుగా వచ్చిన సంప్రదాయ వంటకాలతో తయారు చేయబడింది. వేడి అన్నం మరియు రొట్టెలతో అద్భుతమైన కాంబినేషన్.",
+  "chutneyDescription": "పుల్లని మరియు కారమైన రుచుల సరైన మిశ్రమంతో రుచికరమైన గోంగూర చట్నీ. లేత గోంగూర ఆకులతో తాజాగా తయారు చేసిన ఈ చట్నీ ఏ భోజనానికైనా ప్రామాణిక దక్షిణ భారత రుచిని జోడిస్తుంది. దోసెలు, ఇడ్లీలు మరియు అన్నానికి అనువైనది.",
+  "podiDescription": "ఎండబెట్టిన గోంగూర ఆకులు మరియు సుగంధ మసాలాలతో తయారు చేసిన రుచికరమైన పొడి. ఈ బహుముఖ పొడిని అన్నం మరియు నెయ్యితో కలపవచ్చు, దోసెలపై చల్లవచ్చు లేదా సీజనింగ్‌గా ఉపయోగించవచ్చు. గోంగూర ప్రియులకు తప్పనిసరి!",
+
+  "productDetails": "ఉత్పత్తి వివరాలు",
+  "description": "వివరణ",
+  "ingredients": "పదార్థాలు",
+  "selectSize": "సైజు ఎంచుకోండి",
+  "price": "ధర",
+  "add": "జోడించు",
+  "addToCart": "కార్ట్‌కు జోడించు",
+  "addedToCart": "కార్ట్‌కు జోడించబడింది",
+  "viewCart": "కార్ట్ చూడండి",
+
+  "gonguraLeaves": "గోంగూర ఆకులు",
+  "redChillies": "ఎర్ర మిర్చి",
+  "mustardSeeds": "ఆవాలు",
+  "fenugreekSeeds": "మెంతులు",
+  "garlic": "వెల్లుల్లి",
+  "salt": "ఉప్పు",
+  "groundnutOil": "వేరుశెనగ నూనె",
+
+  "myCart": "నా కార్ట్",
+  "cartEmpty": "మీ కార్ట్ ఖాళీగా ఉంది",
+  "addPicklesToCart": "మీ కార్ట్‌కు కొన్ని రుచికరమైన పచ్చళ్ళను జోడించండి",
+  "browseProducts": "ఉత్పత్తులు చూడండి",
+  "addMoreForFreeDelivery": "ఉచిత డెలివరీ కోసం ₹{amount} మరింత జోడించండి",
+  "quantity": "పరిమాణం",
+  "maxQuantityHint": "ఈ సైజుకు గరిష్టంగా {max}. మరింత కోసం పెద్ద సైజు ప్రయత్నించండి!",
+  "applyCoupon": "కూపన్ వర్తింపజేయండి",
+  "availableCoupons": "అందుబాటులో ఉన్న కూపన్లు",
+  "enterCouponCode": "కూపన్ కోడ్ నమోదు చేయండి",
+  "apply": "వర్తింపజేయి",
+  "remove": "తొలగించు",
+  "youSaved": "మీరు ₹{amount} ఆదా చేసారు",
+  "billDetails": "బిల్లు వివరాలు",
+  "itemTotal": "వస్తువుల మొత్తం",
+  "couponDiscount": "కూపన్ డిస్కౌంట్",
+  "delivery": "డెలివరీ",
+  "free": "ఉచితం",
+  "toPay": "చెల్లించాల్సిన మొత్తం",
+  "savedWithCoupon": "కూపన్‌తో మీరు ₹{amount} ఆదా చేసారు!",
+  "viewBillDetails": "బిల్లు వివరాలు చూడండి",
+  "checkout": "చెకౌట్",
+  "removeItem": "వస్తువు తొలగించు",
+  "removeItemConfirm": "మీరు ఖచ్చితంగా ఈ వస్తువును తొలగించాలనుకుంటున్నారా?",
+  "cancel": "రద్దు చేయి",
+
+  "myOrders": "నా ఆర్డర్లు",
+  "active": "యాక్టివ్",
+  "pastOrders": "గత ఆర్డర్లు",
+  "noActiveOrders": "యాక్టివ్ ఆర్డర్లు లేవు",
+  "noPastOrders": "గత ఆర్డర్లు లేవు",
+  "activeOrdersAppearHere": "మీ యాక్టివ్ ఆర్డర్లు ఇక్కడ కనిపిస్తాయి",
+  "orderHistoryAppearHere": "మీ ఆర్డర్ చరిత్ర ఇక్కడ కనిపిస్తుంది",
+  "items": "వస్తువులు",
+  "moreItems": "{count} మరిన్ని వస్తువులు",
+  "expectedBy": "అంచనా తేదీ",
+  "deliveredOn": "డెలివరీ అయింది",
+  "reorder": "మళ్ళీ ఆర్డర్ చేయి",
+  "rate": "రేటింగ్ ఇవ్వండి",
+
+  "orderPlaced": "ఆర్డర్ చేసారు",
+  "orderConfirmed": "నిర్ధారించబడింది",
+  "orderPreparing": "తయారు చేస్తున్నాము",
+  "orderShipped": "షిప్ చేయబడింది",
+  "orderDelivered": "డెలివరీ అయింది",
+  "outForDelivery": "డెలివరీకి బయలుదేరింది",
+
+  "orderStatus": "ఆర్డర్ స్థితి",
+  "viewInvoice": "ఇన్వాయిస్ చూడండి",
+  "deliveryAddress": "డెలివరీ చిరునామా",
+  "paymentDetails": "చెల్లింపు వివరాలు",
+  "paid": "చెల్లించబడింది",
+  "transactionId": "లావాదేవీ ఐడి",
+  "totalPaid": "మొత్తం చెల్లింపు",
+  "needHelp": "సహాయం కావాలా?",
+  "chatWithUs": "మాతో చాట్ చేయండి",
+  "callSupport": "సపోర్ట్‌కు కాల్ చేయండి",
+  "cancelOrder": "ఆర్డర్ రద్దు చేయండి",
+  "cancelOrderConfirm": "మీరు ఖచ్చితంగా ఈ ఆర్డర్‌ను రద్దు చేయాలనుకుంటున్నారా?",
+  "yesCancelOrder": "అవును, రద్దు చేయండి",
+  "no": "వద్దు",
+
+  "myWishlist": "నా విష్‌లిస్ట్",
+  "wishlistEmpty": "మీ విష్‌లిస్ట్ ఖాళీగా ఉంది",
+  "saveItemsForLater": "మీకు నచ్చిన వస్తువులను తర్వాత కోసం సేవ్ చేయండి",
+  "discoverProducts": "ఉత్పత్తులు కనుగొనండి",
+  "moveToCart": "కార్ట్‌కు తరలించు",
+  "movedToCart": "కార్ట్‌కు తరలించబడింది",
+  "removedFromWishlist": "విష్‌లిస్ట్ నుండి తొలగించబడింది",
+
+  "myProfile": "నా ప్రొఫైల్",
+  "editProfile": "ప్రొఫైల్ సవరించు",
+  "myAddresses": "నా చిరునామాలు",
+  "paymentMethods": "చెల్లింపు పద్ధతులు",
+  "notifications": "నోటిఫికేషన్లు",
+  "settings": "సెట్టింగ్‌లు",
+  "helpSupport": "సహాయం & మద్దతు",
+  "aboutUs": "మా గురించి",
+  "logout": "లాగౌట్",
+  "logoutConfirm": "మీరు ఖచ్చితంగా లాగౌట్ అవ్వాలనుకుంటున్నారా?",
+  "yesLogout": "అవును, లాగౌట్",
+
+  "language": "భాష",
+  "languageChangeInfo": "మీకు నచ్చిన భాషను ఎంచుకోండి. మార్పులు వర్తింపజేయడానికి యాప్ రీస్టార్ట్ అవుతుంది.",
+  "changeLanguage": "భాష మార్చు",
+  "languageChangeConfirm": "భాష మార్పు వర్తింపజేయడానికి యాప్ రీస్టార్ట్ కావాలి. కొనసాగించాలా?",
+  "continue_": "కొనసాగించు",
+  "languageChangedTo": "భాష {language}కు మార్చబడింది",
+
+  "english": "ఆంగ్లం",
+  "hindi": "హిందీ",
+  "telugu": "తెలుగు",
+
+  "aboutUsTitle": "మా గురించి",
+  "ourStory": "మా కథ",
+  "ourStoryContent": "గోంగూర గృహ ప్రామాణిక ఆంధ్ర రుచుల పట్ల మక్కువతో పుట్టింది. హైదరాబాద్‌లో పచ్చడి ప్రియుల కుటుంబం ప్రారంభించిన, మేము మీకు ఇంట్లో తయారు చేసిన ఆంధ్ర పచ్చళ్ళ రుచిని అందిస్తాము, ప్రేమతో మరియు తరతరాలుగా వస్తున్న సంప్రదాయ వంటకాలతో తయారు చేయబడింది.\n\nమా గోంగూర పచ్చళ్ళు తెలంగాణ పొలాల నుండి నేరుగా సేకరించిన అత్యుత్తమ గోంగూర ఆకులతో తయారు చేయబడతాయి.",
+  "whyChooseUs": "మమ్మల్ని ఎందుకు ఎంచుకోవాలి",
+  "natural100": "100% సహజం",
+  "naturalDesc": "ప్రిజర్వేటివ్‌లు లేదా కృత్రిమ రంగులు లేవు",
+  "authenticRecipes": "ప్రామాణిక వంటకాలు",
+  "authenticDesc": "సంప్రదాయ ఆంధ్ర వంట పద్ధతులు",
+  "freshDelivery": "తాజా డెలివరీ",
+  "freshDeliveryDesc": "మీ ఇంటి వద్దకు తాజాగా డెలివరీ",
+  "madeWithLove": "ప్రేమతో తయారు చేసింది",
+  "madeWithLoveDesc": "చిన్న బ్యాచ్‌లలో చేతితో తయారు చేసింది",
+  "connectWithUs": "మాతో కనెక్ట్ అవ్వండి",
+  "contactInformation": "సంప్రదింపు సమాచారం",
+  "address": "చిరునామా",
+  "email": "ఈమెయిల్",
+  "phone": "ఫోన్",
+  "version": "వెర్షన్",
+  "madeInIndia": "భారతదేశంలో ప్రేమతో తయారు చేయబడింది",
+
+  "allProducts": "అన్ని ఉత్పత్తులు",
+  "filter": "ఫిల్టర్",
+  "sortBy": "క్రమబద్ధీకరించు",
+  "priceRange": "ధర పరిధి",
+  "clearAll": "అన్నీ క్లియర్ చేయి",
+  "applyFilters": "ఫిల్టర్లు వర్తింపజేయి",
+  "popularity": "ప్రజాదరణ",
+  "priceLowToHigh": "ధర: తక్కువ నుండి ఎక్కువ",
+  "priceHighToLow": "ధర: ఎక్కువ నుండి తక్కువ",
+  "newest": "కొత్తవి",
+  "noProductsFound": "ఉత్పత్తులు కనుగొనబడలేదు",
+  "tryDifferentFilters": "వేరే ఫిల్టర్లు లేదా సెర్చ్ టర్మ్స్ ప్రయత్నించండి",
+
+  "search": "వెతకండి",
+  "recentSearches": "ఇటీవలి శోధనలు",
+  "clearHistory": "చరిత్ర క్లియర్ చేయి",
+  "searchResults": "శోధన ఫలితాలు",
+  "noResults": "ఫలితాలు కనుగొనబడలేదు",
+  "tryDifferentKeywords": "వేరే కీవర్డ్స్ ప్రయత్నించండి",
+
+  "veg": "శాకాహారం",
+  "nonVeg": "మాంసాహారం",
+
+  "sort": "క్రమబద్ధం",
+  "filters": "ఫిల్టర్లు",
+  "reset": "రీసెట్",
+  "mostPopular": "అత్యంత ప్రజాదరణ",
+  "nameAToZ": "పేరు: A నుండి Z",
+  "dietaryPreference": "ఆహార ప్రాధాన్యత",
+  "all": "అన్నీ",
+  "vegOnly": "శాకాహారం మాత్రమే",
+  "clearFilters": "ఫిల్టర్లు క్లియర్ చేయి",
+  "productsCount": "{count} ఉత్పత్తులు",
+  "@productsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tryAdjustingFilters": "మీ ఫిల్టర్లను సర్దుబాటు చేయడానికి ప్రయత్నించండి",
+
+  "calories": "కేలరీలు",
+  "protein": "ప్రోటీన్",
+  "carbs": "కార్బ్స్",
+  "fat": "కొవ్వు",
+  "sodium": "సోడియం",
+
+  "highlight100Natural": "100% సహజ పదార్థాలతో తయారు చేయబడింది",
+  "highlightNoPreservatives": "ప్రిజర్వేటివ్‌లు లేదా కృత్రిమ రంగులు లేవు",
+  "highlightTraditionalRecipe": "సంప్రదాయ ఆంధ్ర వంటకం",
+  "highlightFreshGongura": "ఆంధ్రప్రదేశ్ నుండి తాజా గోంగూర ఆకులు",
+  "highlightShelfLife6Months": "షెల్ఫ్ లైఫ్: 6 నెలలు",
+  "highlightTangySpicy": "పర్ఫెక్ట్ పుల్లని-కారం బ్యాలెన్స్",
+  "highlightNoArtificial": "కృత్రిమ రుచులు లేదా రంగులు లేవు",
+  "highlightFreshSpices": "తాజాగా నూరిన సుగంధ ద్రవ్యాలు",
+  "highlightHandcrafted": "చిన్న బ్యాచ్‌లలో చేతితో తయారు చేయబడింది",
+  "highlightShelfLife4Months": "షెల్ఫ్ లైఫ్: 4 నెలలు",
+  "highlightSunDried": "ఎండలో ఆరబెట్టిన గోంగూర ఆకులు",
+  "highlightCoarseGround": "మంచి టెక్స్చర్ కోసం ముతకగా నూరబడింది",
+  "highlightRichInIron": "ఇనుము మరియు విటమిన్లు అధికంగా ఉంటాయి",
+  "highlightShelfLife8Months": "సుదీర్ఘ షెల్ఫ్ లైఫ్ - 8 నెలలు",
+  "highlightVersatile": "బహుముఖ ఉపయోగం",
+
+  "redChillies": "ఎర్ర మిర్చి",
+  "greenChillies": "పచ్చి మిర్చి",
+  "tamarind": "చింతపండు",
+  "cuminSeeds": "జీలకర్ర",
+  "cumin": "జీలకర్ర",
+  "sesameOil": "నువ్వుల నూనె",
+  "driedGonguraLeaves": "ఎండిన గోంగూర ఆకులు",
+  "uradDal": "మినప పప్పు",
+  "chanaDal": "శనగ పప్పు",
+
+  "selectSize": "సైజ్ ఎంచుకోండి",
+  "highlights": "ముఖ్యాంశాలు",
+  "nutritionInfoPer": "పోషకాహార సమాచారం (ప్రతి {weight})",
+  "@nutritionInfoPer": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+
+  "myCart": "నా కార్ట్",
+  "cartEmpty": "మీ కార్ట్ ఖాళీగా ఉంది",
+  "addPicklesToCart": "మీ కార్ట్‌కు రుచికరమైన ఊరగాయలను జోడించండి",
+  "browseProducts": "ఉత్పత్తులు చూడండి",
+  "addMoreForFreeDelivery": "ఉచిత డెలివరీ కోసం ₹{amount} మరిన్ని జోడించండి",
+  "@addMoreForFreeDelivery": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "maxQuantityHint": "ఈ సైజ్‌కు గరిష్టంగా {max}. మరిన్ని కోసం పెద్ద సైజ్ ప్రయత్నించండి!",
+  "@maxQuantityHint": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "youSaved": "మీరు ₹{amount} ఆదా చేసారు",
+  "@youSaved": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savedWithCoupon": "కూపన్‌తో మీరు ₹{amount} ఆదా చేసారు!",
+  "@savedWithCoupon": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "billDetails": "బిల్ వివరాలు",
+  "itemTotal": "ఐటమ్ మొత్తం",
+  "couponDiscount": "కూపన్ తగ్గింపు",
+  "toPay": "చెల్లించాల్సిన మొత్తం",
+  "viewBillDetails": "బిల్ వివరాలు చూడండి",
+  "removeItem": "ఐటమ్ తొలగించు",
+  "removeItemConfirm": "మీరు ఖచ్చితంగా ఈ ఐటమ్‌ను తొలగించాలనుకుంటున్నారా?",
+  "enterCouponCode": "కూపన్ కోడ్ ఎంటర్ చేయండి",
+  "availableCoupons": "అందుబాటులో ఉన్న కూపన్‌లు",
+  "addMoreToApply": "వర్తింపజేయడానికి ₹{amount} మరిన్ని జోడించండి",
+  "@addMoreToApply": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+
+  "statusOrderConfirmed": "ఆర్డర్ ధృవీకరించబడింది",
+  "statusOutForDelivery": "డెలివరీకి బయలుదేరింది",
+  "tomorrowDelivery": "రేపు, రాత్రి 8 గంటల లోపు",
+  "todayDelivery": "ఈ రోజు, సాయంత్రం 6 గంటల లోపు",
+
+  "account": "ఖాతా",
+  "savedAddresses": "సేవ్ చేసిన చిరునామాలు",
+  "addressesCount": "{count} చిరునామాలు",
+  "@addressesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preferences": "ప్రాధాన్యతలు",
+  "support": "సహాయం",
+  "termsConditions": "నిబంధనలు & షరతులు",
+  "privacyPolicy": "గోప్యతా విధానం",
+
+  "popularSearches": "ప్రజాదరణ పొందిన శోధనలు",
+  "browseCategories": "వర్గాలను బ్రౌజ్ చేయండి",
+  "vegPickles": "శాకాహార ఊరగాయలు",
+  "nonVegPickles": "మాంసాహార ఊరగాయలు",
+  "chutneys": "పచ్చళ్ళు",
+  "giftPacks": "బహుమతి ప్యాక్‌లు"
+}

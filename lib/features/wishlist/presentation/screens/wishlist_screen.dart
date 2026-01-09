@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/buttons/primary_button.dart';
 import '../../../../shared/widgets/cards/product_card.dart';
 
@@ -18,49 +19,64 @@ class WishlistScreen extends StatefulWidget {
 }
 
 class _WishlistScreenState extends State<WishlistScreen> {
-  // Mock wishlist data - matching gongura products
-  final List<Map<String, dynamic>> _wishlistItems = [
-    {
-      'id': '1',
-      'name': 'Traditional Gongura Pachadi',
-      'price': 199.0,
-      'image': 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
-      'isVeg': true,
-      'inStock': true,
-      'slug': 'traditional-gongura-pachadi',
-    },
-    {
-      'id': '2',
-      'name': 'Classic Gongura Chutney',
-      'price': 149.0,
-      'image': 'https://images.unsplash.com/photo-1606471191009-63994c53433b?w=400',
-      'isVeg': true,
-      'inStock': true,
-      'slug': 'classic-gongura-chutney',
-    },
-    {
-      'id': '3',
-      'name': 'Spicy Gongura Podi',
-      'price': 139.0,
-      'image': 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400',
-      'isVeg': true,
-      'inStock': true,
-      'slug': 'spicy-gongura-podi',
-    },
-  ];
+  // Track which items are in wishlist by their slugs
+  final Set<String> _wishlistItemSlugs = {
+    'traditional-gongura-pachadi',
+    'classic-gongura-chutney',
+    'spicy-gongura-podi',
+  };
+
+  // Generate localized wishlist items
+  List<Map<String, dynamic>> _getWishlistItems(AppLocalizations l10n) {
+    final allProducts = [
+      {
+        'id': '1',
+        'name': l10n.traditionalGonguraPachadi,
+        'price': 199.0,
+        'image': 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
+        'isVeg': true,
+        'inStock': true,
+        'slug': 'traditional-gongura-pachadi',
+      },
+      {
+        'id': '2',
+        'name': l10n.classicGonguraChutney,
+        'price': 149.0,
+        'image': 'https://images.unsplash.com/photo-1606471191009-63994c53433b?w=400',
+        'isVeg': true,
+        'inStock': true,
+        'slug': 'classic-gongura-chutney',
+      },
+      {
+        'id': '3',
+        'name': l10n.spicyGonguraPodi,
+        'price': 139.0,
+        'image': 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400',
+        'isVeg': true,
+        'inStock': true,
+        'slug': 'spicy-gongura-podi',
+      },
+    ];
+    return allProducts.where((p) => _wishlistItemSlugs.contains(p['slug'])).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final wishlistItems = _getWishlistItems(l10n);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Wishlist (${_wishlistItems.length})'),
+        title: Text('${l10n.wishlist} (${wishlistItems.length})'),
       ),
-      body: _wishlistItems.isEmpty ? _buildEmptyState() : _buildWishlistGrid(),
+      body: wishlistItems.isEmpty
+          ? _buildEmptyState(l10n)
+          : _buildWishlistGrid(wishlistItems, l10n),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -72,21 +88,21 @@ class _WishlistScreenState extends State<WishlistScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Your wishlist is empty',
+            l10n.wishlistEmpty,
             style: AppTextStyles.titleLarge.copyWith(
               color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Save your favorite pickles here',
+            l10n.saveItemsForLater,
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.textTertiary,
             ),
           ),
           const SizedBox(height: 24),
           PrimaryButton(
-            text: 'Browse Products',
+            text: l10n.discoverProducts,
             onPressed: () => context.push(AppRoutes.productList),
           ),
         ],
@@ -94,7 +110,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
     );
   }
 
-  Widget _buildWishlistGrid() {
+  Widget _buildWishlistGrid(List<Map<String, dynamic>> wishlistItems, AppLocalizations l10n) {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -103,9 +119,9 @@ class _WishlistScreenState extends State<WishlistScreen> {
         crossAxisSpacing: 12,
         mainAxisSpacing: 16,
       ),
-      itemCount: _wishlistItems.length,
+      itemCount: wishlistItems.length,
       itemBuilder: (context, index) {
-        final item = _wishlistItems[index];
+        final item = wishlistItems[index];
         return ProductCard(
           name: item['name'] as String,
           price: item['price'] as double,
@@ -119,10 +135,10 @@ class _WishlistScreenState extends State<WishlistScreen> {
           onAddToCart: () {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('${item['name']} added to cart'),
+                content: Text('${item['name']} ${l10n.addedToCart}'),
                 backgroundColor: const Color(0xFF4A7C59),
                 action: SnackBarAction(
-                  label: 'VIEW CART',
+                  label: l10n.viewCart,
                   textColor: Colors.white,
                   onPressed: () => context.push(AppRoutes.cart),
                 ),
@@ -130,13 +146,14 @@ class _WishlistScreenState extends State<WishlistScreen> {
             );
           },
           onWishlistToggle: () {
+            final slug = item['slug'] as String;
             setState(() {
-              _wishlistItems.removeAt(index);
+              _wishlistItemSlugs.remove(slug);
             });
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Removed from wishlist'),
-                backgroundColor: Color(0xFF4A7C59),
+              SnackBar(
+                content: Text('${item['name']} ${l10n.removedFromWishlist}'),
+                backgroundColor: const Color(0xFF4A7C59),
               ),
             );
           },

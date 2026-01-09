@@ -5,6 +5,7 @@ import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Orders Screen
 ///
@@ -21,32 +22,32 @@ class _OrdersScreenState extends State<OrdersScreen>
   late TabController _tabController;
 
   // Order status stages for progress bar
-  static const List<String> _orderStages = [
-    'Placed',
-    'Confirmed',
-    'Preparing',
-    'Shipped',
-    'Delivered',
+  List<String> _getOrderStages(AppLocalizations l10n) => [
+    l10n.orderPlaced,
+    l10n.orderConfirmed,
+    l10n.orderPreparing,
+    l10n.orderShipped,
+    l10n.orderDelivered,
   ];
 
-  // Mock orders data
-  final List<Map<String, dynamic>> _orders = [
+  // Mock orders data with localized names
+  List<Map<String, dynamic>> _getOrders(AppLocalizations l10n) => [
     {
       'orderNumber': 'GG78945612',
       'date': DateTime.now().subtract(const Duration(hours: 2)),
       'status': 'processing',
-      'statusText': 'Order Confirmed',
+      'statusText': l10n.statusOrderConfirmed,
       'currentStage': 1, // 0-indexed stage
       'items': [
         {
-          'name': 'Traditional Gongura Pachadi',
+          'name': l10n.traditionalGonguraPachadi,
           'quantity': 2,
           'size': '500g',
           'sizeIndex': 1,
           'image': 'assets/images/GonguraPickle.png',
         },
         {
-          'name': 'Spicy Gongura Podi',
+          'name': l10n.spicyGonguraPodi,
           'quantity': 1,
           'size': '250g',
           'sizeIndex': 0,
@@ -54,17 +55,17 @@ class _OrdersScreenState extends State<OrdersScreen>
         },
       ],
       'total': 1647.0,
-      'estimatedDelivery': 'Tomorrow, 10 AM - 2 PM',
+      'estimatedDelivery': l10n.tomorrowDelivery,
     },
     {
       'orderNumber': 'GG78912345',
       'date': DateTime.now().subtract(const Duration(days: 3)),
       'status': 'shipped',
-      'statusText': 'Out for Delivery',
+      'statusText': l10n.statusOutForDelivery,
       'currentStage': 3,
       'items': [
         {
-          'name': 'Classic Gongura Chutney',
+          'name': l10n.classicGonguraChutney,
           'quantity': 2,
           'size': '250g',
           'sizeIndex': 0,
@@ -72,24 +73,24 @@ class _OrdersScreenState extends State<OrdersScreen>
         },
       ],
       'total': 398.0,
-      'estimatedDelivery': 'Today, 4 PM - 8 PM',
+      'estimatedDelivery': l10n.todayDelivery,
     },
     {
       'orderNumber': 'GG78901234',
       'date': DateTime.now().subtract(const Duration(days: 7)),
       'status': 'delivered',
-      'statusText': 'Delivered',
+      'statusText': l10n.orderDelivered,
       'currentStage': 4,
       'items': [
         {
-          'name': 'Traditional Gongura Pachadi',
+          'name': l10n.traditionalGonguraPachadi,
           'quantity': 1,
           'size': '1kg',
           'sizeIndex': 2,
           'image': 'assets/images/GonguraPickle.png',
         },
         {
-          'name': 'Spicy Gongura Podi',
+          'name': l10n.spicyGonguraPodi,
           'quantity': 1,
           'size': '500g',
           'sizeIndex': 1,
@@ -103,11 +104,11 @@ class _OrdersScreenState extends State<OrdersScreen>
       'orderNumber': 'GG78891234',
       'date': DateTime.now().subtract(const Duration(days: 30)),
       'status': 'delivered',
-      'statusText': 'Delivered',
+      'statusText': l10n.orderDelivered,
       'currentStage': 4,
       'items': [
         {
-          'name': 'Classic Gongura Chutney',
+          'name': l10n.classicGonguraChutney,
           'quantity': 2,
           'size': '250g',
           'sizeIndex': 0,
@@ -119,11 +120,11 @@ class _OrdersScreenState extends State<OrdersScreen>
     },
   ];
 
-  List<Map<String, dynamic>> get _activeOrders =>
-      _orders.where((o) => o['status'] != 'delivered').toList();
+  List<Map<String, dynamic>> _getActiveOrders(List<Map<String, dynamic>> orders) =>
+      orders.where((o) => o['status'] != 'delivered').toList();
 
-  List<Map<String, dynamic>> get _pastOrders =>
-      _orders.where((o) => o['status'] == 'delivered').toList();
+  List<Map<String, dynamic>> _getPastOrders(List<Map<String, dynamic>> orders) =>
+      orders.where((o) => o['status'] == 'delivered').toList();
 
   @override
   void initState() {
@@ -139,30 +140,36 @@ class _OrdersScreenState extends State<OrdersScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final orders = _getOrders(l10n);
+    final activeOrders = _getActiveOrders(orders);
+    final pastOrders = _getPastOrders(orders);
+    final orderStages = _getOrderStages(l10n);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('My Orders'),
+        title: Text(l10n.myOrders),
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            Tab(text: 'Active (${_activeOrders.length})'),
-            Tab(text: 'Past Orders (${_pastOrders.length})'),
+            Tab(text: '${l10n.active} (${activeOrders.length})'),
+            Tab(text: '${l10n.pastOrders} (${pastOrders.length})'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildOrdersList(_activeOrders, isActive: true),
-          _buildOrdersList(_pastOrders, isActive: false),
+          _buildOrdersList(activeOrders, isActive: true, l10n: l10n, orderStages: orderStages),
+          _buildOrdersList(pastOrders, isActive: false, l10n: l10n, orderStages: orderStages),
         ],
       ),
     );
   }
 
   Widget _buildOrdersList(List<Map<String, dynamic>> orders,
-      {required bool isActive}) {
+      {required bool isActive, required AppLocalizations l10n, required List<String> orderStages}) {
     if (orders.isEmpty) {
       return Center(
         child: Column(
@@ -175,7 +182,7 @@ class _OrdersScreenState extends State<OrdersScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              isActive ? 'No active orders' : 'No past orders',
+              isActive ? l10n.noActiveOrders : l10n.noPastOrders,
               style: AppTextStyles.titleMedium.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -183,8 +190,8 @@ class _OrdersScreenState extends State<OrdersScreen>
             const SizedBox(height: 8),
             Text(
               isActive
-                  ? 'Your active orders will appear here'
-                  : 'Your order history will appear here',
+                  ? l10n.activeOrdersAppearHere
+                  : l10n.orderHistoryAppearHere,
               style: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.textTertiary,
               ),
@@ -198,12 +205,12 @@ class _OrdersScreenState extends State<OrdersScreen>
       padding: const EdgeInsets.all(16),
       itemCount: orders.length,
       itemBuilder: (context, index) {
-        return _buildOrderCard(orders[index]);
+        return _buildOrderCard(orders[index], l10n, orderStages);
       },
     );
   }
 
-  Widget _buildOrderCard(Map<String, dynamic> order) {
+  Widget _buildOrderCard(Map<String, dynamic> order, AppLocalizations l10n, List<String> orderStages) {
     final items = order['items'] as List;
     final isDelivered = order['status'] == 'delivered';
     final currentStage = order['currentStage'] as int;
@@ -277,7 +284,7 @@ class _OrdersScreenState extends State<OrdersScreen>
             if (!isDelivered) ...[
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: _buildProgressBar(currentStage),
+                child: _buildProgressBar(currentStage, orderStages),
               ),
             ],
 
@@ -288,14 +295,14 @@ class _OrdersScreenState extends State<OrdersScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Items',
+                    l10n.items,
                     style: AppTextStyles.labelMedium.copyWith(
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  ...items.take(2).map((item) => _buildItemRow(item as Map<String, dynamic>)),
+                  ...items.take(2).map((item) => _buildItemRow(item as Map<String, dynamic>, l10n)),
                   if (items.length > 2)
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
@@ -305,7 +312,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                             size: 16, color: AppColors.primary),
                           const SizedBox(width: 4),
                           Text(
-                            '${items.length - 2} more item${items.length - 2 > 1 ? 's' : ''}',
+                            l10n.moreItems(items.length - 2),
                             style: AppTextStyles.bodySmall.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,
@@ -339,7 +346,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            isDelivered ? 'Delivered on' : 'Expected by',
+                            isDelivered ? l10n.deliveredOn : l10n.expectedBy,
                             style: AppTextStyles.labelSmall.copyWith(
                               color: AppColors.textTertiary,
                             ),
@@ -387,7 +394,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                           // Reorder
                         },
                         icon: const Icon(Icons.replay, size: 18),
-                        label: const Text('Reorder'),
+                        label: Text(l10n.reorder),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
@@ -403,7 +410,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                           // Rate order
                         },
                         icon: const Icon(Icons.star_outline, size: 18),
-                        label: const Text('Rate'),
+                        label: Text(l10n.rate),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
@@ -422,12 +429,12 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
   }
 
-  Widget _buildProgressBar(int currentStage) {
+  Widget _buildProgressBar(int currentStage, List<String> orderStages) {
     return Column(
       children: [
         // Progress dots and lines
         Row(
-          children: List.generate(_orderStages.length * 2 - 1, (index) {
+          children: List.generate(orderStages.length * 2 - 1, (index) {
             if (index.isEven) {
               // Dot
               final stageIndex = index ~/ 2;
@@ -482,7 +489,7 @@ class _OrdersScreenState extends State<OrdersScreen>
         // Stage labels
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: _orderStages.asMap().entries.map((entry) {
+          children: orderStages.asMap().entries.map((entry) {
             final index = entry.key;
             final stage = entry.value;
             final isCompleted = index <= currentStage;
@@ -510,7 +517,7 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
   }
 
-  Widget _buildItemRow(Map<String, dynamic> item) {
+  Widget _buildItemRow(Map<String, dynamic> item, AppLocalizations l10n) {
     final sizeIndex = item['sizeIndex'] as int? ?? 0;
     final quantity = item['quantity'] as int;
 
@@ -604,7 +611,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Qty: ',
+                          '${l10n.quantity}: ',
                           style: AppTextStyles.labelSmall.copyWith(
                             color: AppColors.textTertiary,
                           ),

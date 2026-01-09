@@ -1,0 +1,334 @@
+{
+  "@@locale": "hi",
+
+  "appName": "गोंगुरा गृह",
+  "appTagline": "प्रामाणिक आंध्र अचार",
+
+  "home": "होम",
+  "orders": "ऑर्डर",
+  "wishlist": "विशलिस्ट",
+  "profile": "प्रोफाइल",
+
+  "deliverTo": "डिलीवरी पता",
+  "searchPickles": "अचार खोजें...",
+  "shopNow": "अभी खरीदें",
+  "categories": "श्रेणियाँ",
+  "featuredProducts": "विशेष उत्पाद",
+  "viewAll": "सभी देखें",
+
+  "pachadi": "पचड़ी",
+  "chutney": "चटनी",
+  "powder": "पाउडर",
+
+  "bannerTitle1": "शुद्ध गोंगुरा व्यंजन",
+  "bannerSubtitle1": "प्रामाणिक आंध्र गोंगुरा स्वाद",
+  "bannerTitle2": "100% शाकाहारी",
+  "bannerSubtitle2": "ताज़ा गोंगुरा पत्ती उत्पाद",
+  "bannerTitle3": "गोंगुरा स्पेशल",
+  "bannerSubtitle3": "₹499 से ऊपर के ऑर्डर पर मुफ्त डिलीवरी",
+
+  "traditionalGonguraPachadi": "पारंपरिक गोंगुरा पचड़ी",
+  "classicGonguraChutney": "क्लासिक गोंगुरा चटनी",
+  "spicyGonguraPodi": "मसालेदार गोंगुरा पोड़ी",
+
+  "pachadiDescription": "ताज़ी, हाथ से चुनी गई गोंगुरा पत्तियों से बनी प्रामाणिक आंध्र शैली की गोंगुरा पचड़ी। यह खट्टी और मसालेदार पचड़ी पीढ़ियों से चली आ रही पारंपरिक रेसिपी से तैयार की जाती है। गर्म चावल और रोटी के साथ बिल्कुल सही।",
+  "chutneyDescription": "खट्टे और मसालेदार स्वाद के सही मिश्रण के साथ एक स्वादिष्ट गोंगुरा चटनी। कोमल गोंगुरा पत्तियों से ताज़ा बनाई गई, यह चटनी किसी भी भोजन में प्रामाणिक दक्षिण भारतीय स्वाद जोड़ती है। डोसा, इडली और चावल के लिए आदर्श।",
+  "podiDescription": "धूप में सुखाई गई गोंगुरा पत्तियों और सुगंधित मसालों से बना एक स्वादिष्ट सूखा पाउडर। इस बहुमुखी पोड़ी को चावल और घी के साथ मिलाया जा सकता है, डोसे पर छिड़का जा सकता है, या मसाले के रूप में उपयोग किया जा सकता है।",
+
+  "productDetails": "उत्पाद विवरण",
+  "description": "विवरण",
+  "ingredients": "सामग्री",
+  "selectSize": "आकार चुनें",
+  "price": "मूल्य",
+  "add": "जोड़ें",
+  "addToCart": "कार्ट में जोड़ें",
+  "addedToCart": "कार्ट में जोड़ा गया",
+  "viewCart": "कार्ट देखें",
+
+  "gonguraLeaves": "गोंगुरा पत्तियाँ",
+  "redChillies": "लाल मिर्च",
+  "mustardSeeds": "राई",
+  "fenugreekSeeds": "मेथी",
+  "garlic": "लहसुन",
+  "salt": "नमक",
+  "groundnutOil": "मूंगफली का तेल",
+
+  "myCart": "मेरी कार्ट",
+  "cartEmpty": "आपकी कार्ट खाली है",
+  "addPicklesToCart": "अपनी कार्ट में कुछ स्वादिष्ट अचार जोड़ें",
+  "browseProducts": "उत्पाद देखें",
+  "addMoreForFreeDelivery": "मुफ्त डिलीवरी के लिए ₹{amount} और जोड़ें",
+  "quantity": "मात्रा",
+  "maxQuantityHint": "इस आकार के लिए अधिकतम {max}। अधिक के लिए बड़ा आकार आज़माएं!",
+  "applyCoupon": "कूपन लागू करें",
+  "availableCoupons": "उपलब्ध कूपन",
+  "enterCouponCode": "कूपन कोड दर्ज करें",
+  "apply": "लागू करें",
+  "remove": "हटाएं",
+  "youSaved": "आपने ₹{amount} बचाए",
+  "billDetails": "बिल विवरण",
+  "itemTotal": "आइटम कुल",
+  "couponDiscount": "कूपन छूट",
+  "delivery": "डिलीवरी",
+  "free": "मुफ्त",
+  "toPay": "भुगतान करें",
+  "savedWithCoupon": "आपने कूपन से ₹{amount} बचाए!",
+  "viewBillDetails": "बिल विवरण देखें",
+  "checkout": "चेकआउट",
+  "removeItem": "आइटम हटाएं",
+  "removeItemConfirm": "क्या आप वाकई इस आइटम को हटाना चाहते हैं?",
+  "cancel": "रद्द करें",
+
+  "myOrders": "मेरे ऑर्डर",
+  "active": "सक्रिय",
+  "pastOrders": "पिछले ऑर्डर",
+  "noActiveOrders": "कोई सक्रिय ऑर्डर नहीं",
+  "noPastOrders": "कोई पिछले ऑर्डर नहीं",
+  "activeOrdersAppearHere": "आपके सक्रिय ऑर्डर यहाँ दिखाई देंगे",
+  "orderHistoryAppearHere": "आपका ऑर्डर इतिहास यहाँ दिखाई देगा",
+  "items": "आइटम",
+  "moreItems": "{count} और आइटम",
+  "expectedBy": "अपेक्षित तिथि",
+  "deliveredOn": "डिलीवर हुआ",
+  "reorder": "फिर से ऑर्डर करें",
+  "rate": "रेट करें",
+
+  "orderPlaced": "ऑर्डर किया",
+  "orderConfirmed": "पुष्टि",
+  "orderPreparing": "तैयारी",
+  "orderShipped": "भेजा गया",
+  "orderDelivered": "डिलीवर",
+  "outForDelivery": "डिलीवरी के लिए निकला",
+
+  "orderStatus": "ऑर्डर स्थिति",
+  "viewInvoice": "इनवॉइस देखें",
+  "deliveryAddress": "डिलीवरी पता",
+  "paymentDetails": "भुगतान विवरण",
+  "paid": "भुगतान किया",
+  "transactionId": "लेनदेन आईडी",
+  "totalPaid": "कुल भुगतान",
+  "needHelp": "मदद चाहिए?",
+  "chatWithUs": "हमसे चैट करें",
+  "callSupport": "सपोर्ट को कॉल करें",
+  "cancelOrder": "ऑर्डर रद्द करें",
+  "cancelOrderConfirm": "क्या आप वाकई इस ऑर्डर को रद्द करना चाहते हैं?",
+  "yesCancelOrder": "हाँ, रद्द करें",
+  "no": "नहीं",
+
+  "myWishlist": "मेरी विशलिस्ट",
+  "wishlistEmpty": "आपकी विशलिस्ट खाली है",
+  "saveItemsForLater": "अपनी पसंद की चीज़ें बाद के लिए सहेजें",
+  "discoverProducts": "उत्पाद खोजें",
+  "moveToCart": "कार्ट में ले जाएं",
+  "movedToCart": "कार्ट में जोड़ा गया",
+  "removedFromWishlist": "विशलिस्ट से हटाया गया",
+
+  "myProfile": "मेरी प्रोफाइल",
+  "editProfile": "प्रोफाइल संपादित करें",
+  "myAddresses": "मेरे पते",
+  "paymentMethods": "भुगतान के तरीके",
+  "notifications": "सूचनाएं",
+  "settings": "सेटिंग्स",
+  "helpSupport": "सहायता और समर्थन",
+  "aboutUs": "हमारे बारे में",
+  "logout": "लॉगआउट",
+  "logoutConfirm": "क्या आप वाकई लॉगआउट करना चाहते हैं?",
+  "yesLogout": "हाँ, लॉगआउट करें",
+
+  "language": "भाषा",
+  "languageChangeInfo": "अपनी पसंदीदा भाषा चुनें। परिवर्तन लागू करने के लिए ऐप पुनः आरंभ होगा।",
+  "changeLanguage": "भाषा बदलें",
+  "languageChangeConfirm": "भाषा परिवर्तन लागू करने के लिए ऐप को पुनः आरंभ करना होगा। जारी रखें?",
+  "continue_": "जारी रखें",
+  "languageChangedTo": "भाषा {language} में बदल दी गई",
+
+  "english": "अंग्रेज़ी",
+  "hindi": "हिंदी",
+  "telugu": "तेलुगु",
+
+  "aboutUsTitle": "हमारे बारे में",
+  "ourStory": "हमारी कहानी",
+  "ourStoryContent": "गोंगुरा गृह प्रामाणिक आंध्र स्वाद के जुनून से पैदा हुआ था। हैदराबाद में अचार प्रेमियों के एक परिवार द्वारा शुरू किया गया, हम आपके लिए घर के बने आंध्र अचार का स्वाद लाते हैं, जो प्यार और पीढ़ियों से चली आ रही पारंपरिक रेसिपी से बनाया गया है।\n\nहमारे गोंगुरा अचार तेलंगाना के खेतों से सीधे प्राप्त बेहतरीन अम्बाड़ी की पत्तियों से बनाए जाते हैं।",
+  "whyChooseUs": "हमें क्यों चुनें",
+  "natural100": "100% प्राकृतिक",
+  "naturalDesc": "कोई प्रिजर्वेटिव या कृत्रिम रंग नहीं",
+  "authenticRecipes": "प्रामाणिक रेसिपी",
+  "authenticDesc": "पारंपरिक आंध्र खाना पकाने के तरीके",
+  "freshDelivery": "ताज़ी डिलीवरी",
+  "freshDeliveryDesc": "आपके दरवाज़े पर ताज़ा डिलीवर",
+  "madeWithLove": "प्यार से बनाया",
+  "madeWithLoveDesc": "छोटे बैचों में हाथ से बनाया",
+  "connectWithUs": "हमसे जुड़ें",
+  "contactInformation": "संपर्क जानकारी",
+  "address": "पता",
+  "email": "ईमेल",
+  "phone": "फोन",
+  "version": "संस्करण",
+  "madeInIndia": "भारत में प्यार से बनाया गया",
+
+  "allProducts": "सभी उत्पाद",
+  "filter": "फिल्टर",
+  "sortBy": "क्रमबद्ध करें",
+  "priceRange": "मूल्य सीमा",
+  "clearAll": "सभी साफ करें",
+  "applyFilters": "फिल्टर लागू करें",
+  "popularity": "लोकप्रियता",
+  "priceLowToHigh": "मूल्य: कम से अधिक",
+  "priceHighToLow": "मूल्य: अधिक से कम",
+  "newest": "नवीनतम",
+  "noProductsFound": "कोई उत्पाद नहीं मिला",
+  "tryDifferentFilters": "अलग फिल्टर या खोज शब्द आज़माएं",
+
+  "search": "खोजें",
+  "recentSearches": "हाल की खोजें",
+  "clearHistory": "इतिहास साफ करें",
+  "searchResults": "खोज परिणाम",
+  "noResults": "कोई परिणाम नहीं मिला",
+  "tryDifferentKeywords": "अलग कीवर्ड आज़माएं",
+
+  "veg": "शाकाहारी",
+  "nonVeg": "मांसाहारी",
+
+  "sort": "क्रमबद्ध",
+  "filters": "फिल्टर",
+  "reset": "रीसेट",
+  "mostPopular": "सबसे लोकप्रिय",
+  "nameAToZ": "नाम: A से Z",
+  "dietaryPreference": "आहार वरीयता",
+  "all": "सभी",
+  "vegOnly": "केवल शाकाहारी",
+  "clearFilters": "फिल्टर साफ करें",
+  "productsCount": "{count} उत्पाद",
+  "@productsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tryAdjustingFilters": "अपने फिल्टर बदलने का प्रयास करें",
+
+  "calories": "कैलोरी",
+  "protein": "प्रोटीन",
+  "carbs": "कार्ब्स",
+  "fat": "वसा",
+  "sodium": "सोडियम",
+
+  "highlight100Natural": "100% प्राकृतिक सामग्री से बना",
+  "highlightNoPreservatives": "कोई संरक्षक या कृत्रिम रंग नहीं",
+  "highlightTraditionalRecipe": "पारंपरिक आंध्र रेसिपी",
+  "highlightFreshGongura": "आंध्र प्रदेश से ताजी गोंगुरा पत्तियां",
+  "highlightShelfLife6Months": "शेल्फ लाइफ: 6 महीने",
+  "highlightTangySpicy": "परफेक्ट खट्टा-मसालेदार बैलेंस",
+  "highlightNoArtificial": "कोई कृत्रिम स्वाद या रंग नहीं",
+  "highlightFreshSpices": "ताजे पिसे मसाले",
+  "highlightHandcrafted": "छोटी मात्रा में हस्तनिर्मित",
+  "highlightShelfLife4Months": "शेल्फ लाइफ: 4 महीने",
+  "highlightSunDried": "धूप में सुखाई गोंगुरा पत्तियां",
+  "highlightCoarseGround": "बेहतरीन बनावट के लिए मोटा पिसा",
+  "highlightRichInIron": "आयरन और विटामिन से भरपूर",
+  "highlightShelfLife8Months": "लंबी शेल्फ लाइफ - 8 महीने",
+  "highlightVersatile": "बहुमुखी उपयोग",
+
+  "redChillies": "लाल मिर्च",
+  "greenChillies": "हरी मिर्च",
+  "tamarind": "इमली",
+  "cuminSeeds": "जीरा",
+  "cumin": "जीरा",
+  "sesameOil": "तिल का तेल",
+  "driedGonguraLeaves": "सूखी गोंगुरा पत्तियां",
+  "uradDal": "उड़द दाल",
+  "chanaDal": "चना दाल",
+
+  "selectSize": "साइज़ चुनें",
+  "highlights": "विशेषताएं",
+  "nutritionInfoPer": "पोषण जानकारी (प्रति {weight})",
+  "@nutritionInfoPer": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+
+  "myCart": "मेरी कार्ट",
+  "cartEmpty": "आपकी कार्ट खाली है",
+  "addPicklesToCart": "अपनी कार्ट में स्वादिष्ट अचार जोड़ें",
+  "browseProducts": "उत्पाद देखें",
+  "addMoreForFreeDelivery": "मुफ्त डिलीवरी के लिए ₹{amount} और जोड़ें",
+  "@addMoreForFreeDelivery": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "maxQuantityHint": "इस साइज़ के लिए अधिकतम {max}। अधिक के लिए बड़ा साइज़ चुनें!",
+  "@maxQuantityHint": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "youSaved": "आपने ₹{amount} बचाए",
+  "@youSaved": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savedWithCoupon": "आपने कूपन से ₹{amount} बचाए!",
+  "@savedWithCoupon": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "billDetails": "बिल विवरण",
+  "itemTotal": "आइटम कुल",
+  "couponDiscount": "कूपन छूट",
+  "toPay": "भुगतान",
+  "viewBillDetails": "बिल विवरण देखें",
+  "removeItem": "आइटम हटाएं",
+  "removeItemConfirm": "क्या आप वाकई इस आइटम को हटाना चाहते हैं?",
+  "enterCouponCode": "कूपन कोड दर्ज करें",
+  "availableCoupons": "उपलब्ध कूपन",
+  "addMoreToApply": "लागू करने के लिए ₹{amount} और जोड़ें",
+  "@addMoreToApply": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+
+  "statusOrderConfirmed": "ऑर्डर कन्फर्म",
+  "statusOutForDelivery": "डिलीवरी के लिए निकला",
+  "tomorrowDelivery": "कल, शाम 8 बजे तक",
+  "todayDelivery": "आज, शाम 6 बजे तक",
+
+  "account": "खाता",
+  "savedAddresses": "सहेजे गए पते",
+  "addressesCount": "{count} पते",
+  "@addressesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preferences": "प्राथमिकताएं",
+  "support": "सहायता",
+  "termsConditions": "नियम और शर्तें",
+  "privacyPolicy": "गोपनीयता नीति",
+
+  "popularSearches": "लोकप्रिय खोज",
+  "browseCategories": "श्रेणियाँ ब्राउज़ करें",
+  "vegPickles": "शाकाहारी अचार",
+  "nonVegPickles": "मांसाहारी अचार",
+  "chutneys": "चटनी",
+  "giftPacks": "उपहार पैक"
+}

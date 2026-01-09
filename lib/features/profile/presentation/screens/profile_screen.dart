@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Profile Screen
 ///
@@ -13,6 +14,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     // Mock user data
     const user = {
       'name': 'Ramesh Kumar',
@@ -87,22 +90,22 @@ class ProfileScreen extends StatelessWidget {
 
                 // Account Section
                 _buildSection(
-                  title: 'Account',
+                  title: l10n.account,
                   items: [
                     _MenuItem(
                       icon: Icons.person_outline,
-                      title: 'Edit Profile',
+                      title: l10n.editProfile,
                       onTap: () => context.push(AppRoutes.editProfile),
                     ),
                     _MenuItem(
                       icon: Icons.location_on_outlined,
-                      title: 'Saved Addresses',
-                      subtitle: '2 addresses',
+                      title: l10n.savedAddresses,
+                      subtitle: l10n.addressesCount(2),
                       onTap: () => context.push(AppRoutes.addresses),
                     ),
                     _MenuItem(
                       icon: Icons.payment,
-                      title: 'Payment Methods',
+                      title: l10n.paymentMethods,
                       onTap: () => context.push(AppRoutes.paymentMethods),
                     ),
                   ],
@@ -112,16 +115,16 @@ class ProfileScreen extends StatelessWidget {
 
                 // Orders Section
                 _buildSection(
-                  title: 'Orders',
+                  title: l10n.orders,
                   items: [
                     _MenuItem(
                       icon: Icons.shopping_bag_outlined,
-                      title: 'My Orders',
+                      title: l10n.myOrders,
                       onTap: () => context.go(AppRoutes.orders),
                     ),
                     _MenuItem(
                       icon: Icons.favorite_outline,
-                      title: 'Wishlist',
+                      title: l10n.wishlist,
                       onTap: () => context.go(AppRoutes.wishlist),
                     ),
                   ],
@@ -131,11 +134,11 @@ class ProfileScreen extends StatelessWidget {
 
                 // Preferences Section
                 _buildSection(
-                  title: 'Preferences',
+                  title: l10n.preferences,
                   items: [
                     _MenuItem(
                       icon: Icons.notifications_outlined,
-                      title: 'Notifications',
+                      title: l10n.notifications,
                       trailing: Switch(
                         value: true,
                         onChanged: (value) {},
@@ -145,8 +148,8 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     _MenuItem(
                       icon: Icons.language,
-                      title: 'Language',
-                      subtitle: 'English',
+                      title: l10n.language,
+                      subtitle: l10n.english,
                       onTap: () => context.push(AppRoutes.language),
                     ),
                   ],
@@ -156,26 +159,26 @@ class ProfileScreen extends StatelessWidget {
 
                 // Support Section
                 _buildSection(
-                  title: 'Support',
+                  title: l10n.support,
                   items: [
                     _MenuItem(
                       icon: Icons.help_outline,
-                      title: 'Help & Support',
+                      title: l10n.helpSupport,
                       onTap: () => context.push(AppRoutes.help),
                     ),
                     _MenuItem(
                       icon: Icons.info_outline,
-                      title: 'About Us',
+                      title: l10n.aboutUs,
                       onTap: () => context.push(AppRoutes.about),
                     ),
                     _MenuItem(
                       icon: Icons.description_outlined,
-                      title: 'Terms & Conditions',
+                      title: l10n.termsConditions,
                       onTap: () => context.push(AppRoutes.termsConditions),
                     ),
                     _MenuItem(
                       icon: Icons.privacy_tip_outlined,
-                      title: 'Privacy Policy',
+                      title: l10n.privacyPolicy,
                       onTap: () => context.push(AppRoutes.privacyPolicy),
                     ),
                   ],
@@ -188,10 +191,10 @@ class ProfileScreen extends StatelessWidget {
                   items: [
                     _MenuItem(
                       icon: Icons.logout,
-                      title: 'Logout',
+                      title: l10n.logout,
                       iconColor: AppColors.error,
                       titleColor: AppColors.error,
-                      onTap: () => _showLogoutDialog(context),
+                      onTap: () => _showLogoutDialog(context, l10n),
                     ),
                   ],
                 ),
@@ -200,7 +203,7 @@ class ProfileScreen extends StatelessWidget {
 
                 // App Version
                 Text(
-                  'Version 1.0.0',
+                  '${l10n.version} 1.0.0',
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.textTertiary,
                   ),
@@ -269,16 +272,16 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
+  void _showLogoutDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        title: Text(l10n.logout),
+        content: Text(l10n.logoutConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -286,7 +289,7 @@ class ProfileScreen extends StatelessWidget {
               context.go(AppRoutes.login);
             },
             child: Text(
-              'Logout',
+              l10n.yesLogout,
               style: TextStyle(color: AppColors.error),
             ),
           ),

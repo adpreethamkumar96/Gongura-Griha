@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/app.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Language Selection Screen
 ///
@@ -15,8 +17,6 @@ class LanguageScreen extends StatefulWidget {
 }
 
 class _LanguageScreenState extends State<LanguageScreen> {
-  String _selectedLanguage = 'en';
-
   final List<Map<String, String>> _languages = [
     {
       'code': 'en',
@@ -40,10 +40,13 @@ class _LanguageScreenState extends State<LanguageScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final currentLocale = localeProvider.locale.languageCode;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Language'),
+        title: Text(l10n.language),
       ),
       body: Column(
         children: [
@@ -65,7 +68,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Select your preferred language. The app will restart to apply changes.',
+                    l10n.languageChangeInfo,
                     style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.info,
                     ),
@@ -83,7 +86,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
               separatorBuilder: (_, __) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final language = _languages[index];
-                final isSelected = language['code'] == _selectedLanguage;
+                final isSelected = language['code'] == currentLocale;
 
                 return ListTile(
                   contentPadding: const EdgeInsets.symmetric(
@@ -116,7 +119,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                           Icons.circle_outlined,
                           color: AppColors.textTertiary,
                         ),
-                  onTap: () => _selectLanguage(language['code']!),
+                  onTap: () => _selectLanguage(language['code']!, language['name']!),
                 );
               },
             ),
@@ -126,37 +129,34 @@ class _LanguageScreenState extends State<LanguageScreen> {
     );
   }
 
-  void _selectLanguage(String code) {
-    if (code == _selectedLanguage) return;
+  void _selectLanguage(String code, String name) {
+    if (code == localeProvider.locale.languageCode) return;
+
+    final l10n = AppLocalizations.of(context)!;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Change Language'),
-        content: const Text(
-          'The app needs to restart to apply the language change. Continue?',
-        ),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.changeLanguage),
+        content: Text(l10n.languageChangeConfirm),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
-              setState(() => _selectedLanguage = code);
-              Navigator.pop(context);
+              localeProvider.setLocale(Locale(code));
+              Navigator.pop(dialogContext);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(
-                    'Language changed to ${_languages.firstWhere((l) => l['code'] == code)['name']}',
-                  ),
+                  content: Text(l10n.languageChangedTo(name)),
                   backgroundColor: AppColors.success,
                 ),
               );
-              // In a real app, this would trigger locale change
               context.pop();
             },
-            child: const Text('Continue'),
+            child: Text(l10n.continue_),
           ),
         ],
       ),

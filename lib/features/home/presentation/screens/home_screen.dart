@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/cards/product_card.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
 
@@ -21,37 +22,36 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentBannerIndex = 0;
 
-  // Demo data - Replace with actual data from API
-  final List<Map<String, dynamic>> _categories = [
-    {'name': 'Pachadi', 'icon': Icons.rice_bowl},
-    {'name': 'Chutney', 'icon': Icons.blender},
-    {'name': 'Powder', 'icon': Icons.grain},
+  List<Map<String, dynamic>> _getCategories(AppLocalizations l10n) => [
+    {'name': l10n.pachadi, 'icon': Icons.rice_bowl, 'key': 'Pachadi'},
+    {'name': l10n.chutney, 'icon': Icons.blender, 'key': 'Chutney'},
+    {'name': l10n.powder, 'icon': Icons.grain, 'key': 'Powder'},
   ];
 
-  final List<Map<String, dynamic>> _banners = [
+  List<Map<String, dynamic>> _getBanners(AppLocalizations l10n) => [
     {
-      'title': 'Pure Gongura Delights',
-      'subtitle': 'Authentic Andhra Gongura Flavors',
+      'title': l10n.bannerTitle1,
+      'subtitle': l10n.bannerSubtitle1,
       'color': AppColors.primaryLight,
       'icon': Icons.eco,
     },
     {
-      'title': '100% Vegetarian',
-      'subtitle': 'Fresh Gongura Leaf Products',
+      'title': l10n.bannerTitle2,
+      'subtitle': l10n.bannerSubtitle2,
       'color': AppColors.accentLight,
       'icon': Icons.spa,
     },
     {
-      'title': 'Gongura Special',
-      'subtitle': 'Free delivery on orders above ₹499',
+      'title': l10n.bannerTitle3,
+      'subtitle': l10n.bannerSubtitle3,
       'color': const Color(0xFFE8F5E9),
       'icon': Icons.local_shipping,
     },
   ];
 
-  final List<Map<String, dynamic>> _featuredProducts = [
+  List<Map<String, dynamic>> _getFeaturedProducts(AppLocalizations l10n) => [
     {
-      'name': 'Traditional Gongura Pachadi',
+      'name': l10n.traditionalGonguraPachadi,
       'image': 'assets/images/GonguraPickle.png',
       'price': 199.0,
       'isVeg': true,
@@ -59,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'isAsset': true,
     },
     {
-      'name': 'Classic Gongura Chutney',
+      'name': l10n.classicGonguraChutney,
       'image': 'assets/images/GonguraChutney.png',
       'price': 149.0,
       'isVeg': true,
@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'isAsset': true,
     },
     {
-      'name': 'Spicy Gongura Podi',
+      'name': l10n.spicyGonguraPodi,
       'image': 'assets/images/GonguraPowder.png',
       'price': 139.0,
       'isVeg': true,
@@ -78,6 +78,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -85,29 +87,29 @@ class _HomeScreenState extends State<HomeScreen> {
           slivers: [
             // App Bar
             SliverToBoxAdapter(
-              child: _buildHeader(),
+              child: _buildHeader(l10n),
             ),
             // Search Bar
             SliverToBoxAdapter(
-              child: _buildSearchBar(),
+              child: _buildSearchBar(l10n),
             ),
             // Banner Carousel
             SliverToBoxAdapter(
-              child: _buildBannerCarousel(),
+              child: _buildBannerCarousel(l10n),
             ),
             // Categories
             SliverToBoxAdapter(
-              child: _buildCategoriesSection(),
+              child: _buildCategoriesSection(l10n),
             ),
             // Featured Products
             SliverToBoxAdapter(
-              child: _buildSectionTitle('Featured Products', onViewAll: () {
+              child: _buildSectionTitle(l10n.featuredProducts, onViewAll: () {
                 context.push(AppRoutes.productList);
-              }),
+              }, l10n: l10n),
             ),
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-              sliver: _buildProductsGrid(),
+              sliver: _buildProductsGrid(l10n),
             ),
           ],
         ),
@@ -115,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Row(
@@ -125,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Deliver to',
+                  l10n.deliverTo,
                   style: AppTypography.caption,
                 ),
                 const SizedBox(height: 2),
@@ -172,24 +174,25 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: SearchTextField(
-        hint: 'Search pickles...',
+        hint: l10n.searchPickles,
         readOnly: true,
         onTap: () => context.push(AppRoutes.search),
       ),
     );
   }
 
-  Widget _buildBannerCarousel() {
+  Widget _buildBannerCarousel(AppLocalizations l10n) {
+    final banners = _getBanners(l10n);
     return Column(
       children: [
         CarouselSlider.builder(
-          itemCount: _banners.length,
+          itemCount: banners.length,
           itemBuilder: (context, index, realIndex) {
-            final banner = _banners[index];
+            final banner = banners[index];
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: 4),
               decoration: BoxDecoration(
@@ -226,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            'Shop Now',
+                            l10n.shopNow,
                             style: AppTypography.buttonSmall.copyWith(
                               color: Colors.white,
                             ),
@@ -271,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
-            _banners.length,
+            banners.length,
             (index) => AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -290,19 +293,20 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCategoriesSection() {
+  Widget _buildCategoriesSection(AppLocalizations l10n) {
+    final categories = _getCategories(l10n);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Categories'),
+        _buildSectionTitle(l10n.categories, l10n: l10n),
         SizedBox(
           height: 110,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: _categories.length,
+            itemCount: categories.length,
             itemBuilder: (context, index) {
-              final category = _categories[index];
+              final category = categories[index];
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: GestureDetector(
@@ -351,7 +355,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title, {VoidCallback? onViewAll}) {
+  Widget _buildSectionTitle(String title, {VoidCallback? onViewAll, required AppLocalizations l10n}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
       child: Row(
@@ -362,7 +366,7 @@ class _HomeScreenState extends State<HomeScreen> {
             TextButton(
               onPressed: onViewAll,
               child: Text(
-                'View All',
+                l10n.viewAll,
                 style: AppTypography.buttonSmall.copyWith(
                   color: AppColors.primary,
                 ),
@@ -373,7 +377,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildProductsGrid() {
+  Widget _buildProductsGrid(AppLocalizations l10n) {
+    final featuredProducts = _getFeaturedProducts(l10n);
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 1,
@@ -383,7 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          final product = _featuredProducts[index];
+          final product = featuredProducts[index];
           return ProductCard(
             name: product['name'] as String,
             imageUrl: product['image'] as String,
@@ -404,7 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           );
         },
-        childCount: _featuredProducts.length,
+        childCount: featuredProducts.length,
       ),
     );
   }

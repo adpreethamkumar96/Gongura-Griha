@@ -5,6 +5,7 @@ import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Search Screen
 ///
@@ -118,23 +119,25 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         titleSpacing: 0,
-        title: _buildSearchBar(),
+        title: _buildSearchBar(l10n),
       ),
       body: _searchController.text.isEmpty
-          ? _buildSuggestions()
+          ? _buildSuggestions(l10n)
           : _isSearching
               ? const Center(child: CircularProgressIndicator())
               : _searchResults.isEmpty
-                  ? _buildNoResults()
+                  ? _buildNoResults(l10n)
                   : _buildSearchResults(),
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(AppLocalizations l10n) {
     return Container(
       height: 44,
       margin: const EdgeInsets.only(right: 16),
@@ -143,7 +146,7 @@ class _SearchScreenState extends State<SearchScreen> {
         focusNode: _focusNode,
         onChanged: _performSearch,
         decoration: InputDecoration(
-          hintText: 'Search pickles...',
+          hintText: l10n.searchPickles,
           hintStyle: AppTextStyles.bodyMedium.copyWith(
             color: AppColors.textTertiary,
           ),
@@ -178,7 +181,7 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildSuggestions() {
+  Widget _buildSuggestions(AppLocalizations l10n) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -190,7 +193,7 @@ class _SearchScreenState extends State<SearchScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Recent Searches',
+                  l10n.recentSearches,
                   style: AppTextStyles.titleSmall,
                 ),
                 TextButton(
@@ -198,7 +201,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     setState(() => _recentSearches.clear());
                   },
                   child: Text(
-                    'Clear All',
+                    l10n.clearAll,
                     style: TextStyle(color: AppColors.primary),
                   ),
                 ),
@@ -231,7 +234,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
           // Popular Searches
           Text(
-            'Popular Searches',
+            l10n.popularSearches,
             style: AppTextStyles.titleSmall,
           ),
           const SizedBox(height: 12),
@@ -260,27 +263,27 @@ class _SearchScreenState extends State<SearchScreen> {
 
           // Categories
           Text(
-            'Browse Categories',
+            l10n.browseCategories,
             style: AppTextStyles.titleSmall,
           ),
           const SizedBox(height: 12),
-          _buildCategoryGrid(),
+          _buildCategoryGrid(l10n),
         ],
       ),
     );
   }
 
-  Widget _buildCategoryGrid() {
+  Widget _buildCategoryGrid(AppLocalizations l10n) {
     final categories = [
-      {'name': 'Veg Pickles', 'icon': Icons.eco, 'color': AppColors.veg},
+      {'name': l10n.vegPickles, 'icon': Icons.eco, 'color': AppColors.veg},
       {
-        'name': 'Non-Veg Pickles',
+        'name': l10n.nonVegPickles,
         'icon': Icons.restaurant,
         'color': AppColors.nonVeg
       },
-      {'name': 'Chutneys', 'icon': Icons.soup_kitchen, 'color': AppColors.info},
+      {'name': l10n.chutneys, 'icon': Icons.soup_kitchen, 'color': AppColors.info},
       {
-        'name': 'Gift Packs',
+        'name': l10n.giftPacks,
         'icon': Icons.card_giftcard,
         'color': AppColors.accent
       },
@@ -337,7 +340,7 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildNoResults() {
+  Widget _buildNoResults(AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -349,14 +352,14 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No results found',
+            l10n.noResults,
             style: AppTextStyles.titleMedium.copyWith(
               color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Try a different search term',
+            l10n.tryDifferentKeywords,
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.textTertiary,
             ),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/cards/product_card.dart';
 
 /// Product List Screen
@@ -29,10 +30,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
   RangeValues _priceRange = const RangeValues(0, 1000);
 
   // Category-specific products data (all veg)
-  final Map<String, List<Map<String, dynamic>>> _categoryProducts = {
+  Map<String, List<Map<String, dynamic>>> _getCategoryProducts(AppLocalizations l10n) => {
     'Pachadi': [
       {
-        'name': 'Traditional Gongura Pachadi',
+        'name': l10n.traditionalGonguraPachadi,
         'price': 199.0,
         'image': 'assets/images/GonguraPickle.png',
         'isVeg': true,
@@ -42,7 +43,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     ],
     'Chutney': [
       {
-        'name': 'Classic Gongura Chutney',
+        'name': l10n.classicGonguraChutney,
         'price': 149.0,
         'image': 'assets/images/GonguraChutney.png',
         'isVeg': true,
@@ -52,7 +53,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     ],
     'Powder': [
       {
-        'name': 'Spicy Gongura Podi',
+        'name': l10n.spicyGonguraPodi,
         'price': 139.0,
         'image': 'assets/images/GonguraPowder.png',
         'isVeg': true,
@@ -62,17 +63,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
     ],
   };
 
-  List<Map<String, dynamic>> get _products {
+  List<Map<String, dynamic>> _getProducts(AppLocalizations l10n) {
+    final categoryProducts = _getCategoryProducts(l10n);
     // If category is specified, return category-specific products
-    if (widget.category != null && _categoryProducts.containsKey(widget.category)) {
-      return _categoryProducts[widget.category]!;
+    if (widget.category != null && categoryProducts.containsKey(widget.category)) {
+      return categoryProducts[widget.category]!;
     }
     // Otherwise return all products
-    return _categoryProducts.values.expand((list) => list).toList();
+    return categoryProducts.values.expand((list) => list).toList();
   }
 
-  List<Map<String, dynamic>> get _filteredProducts {
-    var filtered = _products.where((p) {
+  List<Map<String, dynamic>> _getFilteredProducts(AppLocalizations l10n) {
+    var filtered = _getProducts(l10n).where((p) {
       if (_showVegOnly && !(p['isVeg'] as bool)) return false;
       final price = p['price'] as double;
       if (price < _priceRange.start || price > _priceRange.end) return false;
@@ -101,13 +103,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final filteredProducts = _getFilteredProducts(l10n);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(widget.category ?? 'All Products'),
+        title: Text(widget.category ?? l10n.allProducts),
         actions: [
           IconButton(
-            onPressed: _showFilterBottomSheet,
+            onPressed: () => _showFilterBottomSheet(l10n),
             icon: const Icon(Icons.filter_list),
           ),
         ],
@@ -115,12 +120,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
       body: Column(
         children: [
           // Sort and Filter Bar
-          _buildSortBar(),
+          _buildSortBar(l10n, filteredProducts.length),
 
           // Products Grid
           Expanded(
-            child: _filteredProducts.isEmpty
-                ? _buildEmptyState()
+            child: filteredProducts.isEmpty
+                ? _buildEmptyState(l10n)
                 : GridView.builder(
                     padding: const EdgeInsets.all(16),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -129,9 +134,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 16,
                     ),
-                    itemCount: _filteredProducts.length,
+                    itemCount: filteredProducts.length,
                     itemBuilder: (context, index) {
-                      final product = _filteredProducts[index];
+                      final product = filteredProducts[index];
                       return ProductCard(
                         name: product['name'] as String,
                         price: product['price'] as double,
@@ -157,7 +162,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  Widget _buildSortBar() {
+  Widget _buildSortBar(AppLocalizations l10n, int productCount) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -170,7 +175,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         children: [
           // Results count
           Text(
-            '${_filteredProducts.length} products',
+            l10n.productsCount(productCount),
             style: AppTextStyles.bodySmall.copyWith(
               color: AppColors.textSecondary,
             ),
@@ -222,16 +227,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
               setState(() => _selectedSort = value);
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'popular', child: Text('Most Popular')),
-              const PopupMenuItem(value: 'name', child: Text('Name: A to Z')),
-              const PopupMenuItem(value: 'price_low', child: Text('Price: Low to High')),
-              const PopupMenuItem(value: 'price_high', child: Text('Price: High to Low')),
+              PopupMenuItem(value: 'popular', child: Text(l10n.mostPopular)),
+              PopupMenuItem(value: 'name', child: Text(l10n.nameAToZ)),
+              PopupMenuItem(value: 'price_low', child: Text(l10n.priceLowToHigh)),
+              PopupMenuItem(value: 'price_high', child: Text(l10n.priceHighToLow)),
             ],
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Sort',
+                  l10n.sort,
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -245,7 +250,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -257,14 +262,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No products found',
+            l10n.noProductsFound,
             style: AppTextStyles.titleMedium.copyWith(
               color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Try adjusting your filters',
+            l10n.tryAdjustingFilters,
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.textTertiary,
             ),
@@ -277,14 +282,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 _priceRange = const RangeValues(0, 1000);
               });
             },
-            child: const Text('Clear Filters'),
+            child: Text(l10n.clearFilters),
           ),
         ],
       ),
     );
   }
 
-  void _showFilterBottomSheet() {
+  void _showFilterBottomSheet(AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -301,7 +306,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Filters', style: AppTextStyles.headlineSmall),
+                  Text(l10n.filters, style: AppTextStyles.headlineSmall),
                   TextButton(
                     onPressed: () {
                       setModalState(() {
@@ -309,27 +314,27 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         _priceRange = const RangeValues(0, 1000);
                       });
                     },
-                    child: const Text('Reset'),
+                    child: Text(l10n.reset),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
 
               // Dietary Preference
-              Text('Dietary Preference', style: AppTextStyles.titleSmall),
+              Text(l10n.dietaryPreference, style: AppTextStyles.titleSmall),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
                 children: [
                   ChoiceChip(
-                    label: const Text('All'),
+                    label: Text(l10n.all),
                     selected: !_showVegOnly,
                     onSelected: (_) {
                       setModalState(() => _showVegOnly = false);
                     },
                   ),
                   ChoiceChip(
-                    label: const Text('Veg Only'),
+                    label: Text(l10n.vegOnly),
                     selected: _showVegOnly,
                     onSelected: (_) {
                       setModalState(() => _showVegOnly = true);
@@ -341,7 +346,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               const SizedBox(height: 24),
 
               // Price Range
-              Text('Price Range', style: AppTextStyles.titleSmall),
+              Text(l10n.priceRange, style: AppTextStyles.titleSmall),
               const SizedBox(height: 12),
               RangeSlider(
                 values: _priceRange,
@@ -373,7 +378,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     setState(() {});
                     Navigator.pop(context);
                   },
-                  child: const Text('Apply Filters'),
+                  child: Text(l10n.applyFilters),
                 ),
               ),
               const SizedBox(height: 16),

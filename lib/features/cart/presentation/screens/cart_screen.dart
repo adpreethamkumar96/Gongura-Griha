@@ -5,6 +5,7 @@ import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/buttons/primary_button.dart';
 
 /// Cart Screen
@@ -51,10 +52,10 @@ class _CartScreenState extends State<CartScreen> {
   // Pachadi: 250g=₹199, 500g=₹379, 1kg=₹699
   // Chutney: 200g=₹149, 400g=₹279, 800g=₹529
   // Podi: 100g=₹139, 250g=₹259, 500g=₹489
-  final List<Map<String, dynamic>> _cartItems = [
+  List<Map<String, dynamic>> _getCartItems(AppLocalizations l10n) => [
     {
       'id': '1',
-      'name': 'Traditional Gongura Pachadi',
+      'name': l10n.traditionalGonguraPachadi,
       'size': '500g',
       'sizeIndex': 1, // M size
       'price': 379.0,
@@ -65,7 +66,7 @@ class _CartScreenState extends State<CartScreen> {
     },
     {
       'id': '2',
-      'name': 'Spicy Gongura Podi',
+      'name': l10n.spicyGonguraPodi,
       'size': '100g',
       'sizeIndex': 0, // S size
       'price': 139.0,
@@ -76,7 +77,7 @@ class _CartScreenState extends State<CartScreen> {
     },
     {
       'id': '3',
-      'name': 'Classic Gongura Chutney',
+      'name': l10n.classicGonguraChutney,
       'size': '800g',
       'sizeIndex': 2, // L size
       'price': 529.0,
@@ -87,33 +88,47 @@ class _CartScreenState extends State<CartScreen> {
     },
   ];
 
+  // Mutable cart state
+  List<Map<String, dynamic>>? _cartItemsState;
+
   String? _appliedCoupon;
   double _couponDiscount = 0;
 
-  double get _subtotal => _cartItems.fold(
+  List<Map<String, dynamic>> _getCurrentCartItems(AppLocalizations l10n) {
+    _cartItemsState ??= _getCartItems(l10n);
+    return _cartItemsState!;
+  }
+
+  double _getSubtotal(List<Map<String, dynamic>> cartItems) => cartItems.fold(
         0,
         (sum, item) =>
             sum + (item['price'] as double) * (item['quantity'] as int),
       );
 
-  double get _deliveryCharge => _subtotal >= 500 ? 0 : 40;
+  double _getDeliveryCharge(double subtotal) => subtotal >= 500 ? 0 : 40;
 
-  double get _total => _subtotal + _deliveryCharge - _couponDiscount;
+  double _getTotal(double subtotal, double deliveryCharge) => subtotal + deliveryCharge - _couponDiscount;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final cartItems = _getCurrentCartItems(l10n);
+    final subtotal = _getSubtotal(cartItems);
+    final deliveryCharge = _getDeliveryCharge(subtotal);
+    final total = _getTotal(subtotal, deliveryCharge);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('My Cart (${_cartItems.length})'),
+        title: Text('${l10n.myCart} (${cartItems.length})'),
       ),
-      body: _cartItems.isEmpty ? _buildEmptyCart() : _buildCartContent(),
+      body: cartItems.isEmpty ? _buildEmptyCart(l10n) : _buildCartContent(l10n, cartItems, subtotal),
       bottomNavigationBar:
-          _cartItems.isEmpty ? null : _buildCheckoutBar(),
+          cartItems.isEmpty ? null : _buildCheckoutBar(l10n, total),
     );
   }
 
-  Widget _buildEmptyCart() {
+  Widget _buildEmptyCart(AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -125,21 +140,21 @@ class _CartScreenState extends State<CartScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Your cart is empty',
+            l10n.cartEmpty,
             style: AppTextStyles.titleLarge.copyWith(
               color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Add some delicious pickles to your cart',
+            l10n.addPicklesToCart,
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.textTertiary,
             ),
           ),
           const SizedBox(height: 24),
           PrimaryButton(
-            text: 'Browse Products',
+            text: l10n.browseProducts,
             onPressed: () => context.push(AppRoutes.productList),
           ),
         ],
@@ -147,12 +162,13 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCartContent() {
+  Widget _buildCartContent(AppLocalizations l10n, List<Map<String, dynamic>> cartItems, double subtotal) {
+    final deliveryCharge = _getDeliveryCharge(subtotal);
     return SingleChildScrollView(
       child: Column(
         children: [
           // Free Delivery Banner
-          if (_subtotal < 500)
+          if (subtotal < 500)
             Container(
               padding: const EdgeInsets.all(12),
               margin: const EdgeInsets.all(16),
@@ -167,7 +183,7 @@ class _CartScreenState extends State<CartScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Add \u20B9${(500 - _subtotal).toStringAsFixed(0)} more for FREE delivery',
+                      l10n.addMoreForFreeDelivery((500 - subtotal).toStringAsFixed(0)),
                       style: AppTextStyles.bodySmall.copyWith(
                         color: AppColors.info,
                       ),
@@ -182,20 +198,20 @@ class _CartScreenState extends State<CartScreen> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: _cartItems.length,
+            itemCount: cartItems.length,
             separatorBuilder: (_, __) => const Divider(height: 1),
-            itemBuilder: (context, index) => _buildCartItem(_cartItems[index]),
+            itemBuilder: (context, index) => _buildCartItem(cartItems[index], l10n),
           ),
 
           const SizedBox(height: 16),
 
           // Coupon Section
-          _buildCouponSection(),
+          _buildCouponSection(l10n, subtotal),
 
           const SizedBox(height: 16),
 
           // Bill Details
-          _buildBillDetails(),
+          _buildBillDetails(l10n, subtotal, deliveryCharge),
 
           const SizedBox(height: 100), // Space for bottom bar
         ],
@@ -203,7 +219,7 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCartItem(Map<String, dynamic> item) {
+  Widget _buildCartItem(Map<String, dynamic> item, AppLocalizations l10n) {
     final sizeIndex = item['sizeIndex'] as int? ?? 0;
     final quantity = item['quantity'] as int;
     final maxQuantity = _getMaxQuantity(sizeIndex);
@@ -369,7 +385,7 @@ class _CartScreenState extends State<CartScreen> {
               Row(
                 children: [
                   Text(
-                    'Quantity: ',
+                    '${l10n.quantity}: ',
                     style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -489,7 +505,7 @@ class _CartScreenState extends State<CartScreen> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'Max $maxQuantity for this size. Try a larger size for more!',
+                  l10n.maxQuantityHint(maxQuantity),
                   style: AppTextStyles.labelSmall.copyWith(
                     color: AppColors.warning,
                   ),
@@ -502,7 +518,7 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCouponSection() {
+  Widget _buildCouponSection(AppLocalizations l10n, double subtotal) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
@@ -513,14 +529,14 @@ class _CartScreenState extends State<CartScreen> {
       ),
       child: _appliedCoupon == null
           ? InkWell(
-              onTap: _showCouponBottomSheet,
+              onTap: () => _showCouponBottomSheet(l10n, subtotal),
               child: Row(
                 children: [
                   Icon(Icons.local_offer, color: AppColors.primary),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Apply Coupon',
+                      l10n.applyCoupon,
                       style: AppTextStyles.titleSmall,
                     ),
                   ),
@@ -546,7 +562,7 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                       ),
                       Text(
-                        'You saved \u20B9${_couponDiscount.toStringAsFixed(0)}',
+                        l10n.youSaved(_couponDiscount.toStringAsFixed(0)),
                         style: AppTextStyles.bodySmall.copyWith(
                           color: AppColors.success,
                         ),
@@ -561,14 +577,15 @@ class _CartScreenState extends State<CartScreen> {
                       _couponDiscount = 0;
                     });
                   },
-                  child: const Text('Remove'),
+                  child: Text(l10n.remove),
                 ),
               ],
             ),
     );
   }
 
-  Widget _buildBillDetails() {
+  Widget _buildBillDetails(AppLocalizations l10n, double subtotal, double deliveryCharge) {
+    final total = _getTotal(subtotal, deliveryCharge);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
@@ -580,16 +597,16 @@ class _CartScreenState extends State<CartScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Bill Details', style: AppTextStyles.titleSmall),
+          Text(l10n.billDetails, style: AppTextStyles.titleSmall),
           const SizedBox(height: 16),
 
-          _buildBillRow('Item Total', _subtotal),
+          _buildBillRow(l10n.itemTotal, subtotal),
           if (_couponDiscount > 0)
-            _buildBillRow('Coupon Discount', -_couponDiscount, isDiscount: true),
+            _buildBillRow(l10n.couponDiscount, -_couponDiscount, isDiscount: true),
           _buildBillRow(
-            'Delivery',
-            _deliveryCharge,
-            subtitle: _deliveryCharge == 0 ? 'FREE' : null,
+            l10n.delivery,
+            deliveryCharge,
+            subtitle: deliveryCharge == 0 ? l10n.free : null,
           ),
 
           const Divider(height: 24),
@@ -597,9 +614,9 @@ class _CartScreenState extends State<CartScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('To Pay', style: AppTextStyles.titleMedium),
+              Text(l10n.toPay, style: AppTextStyles.titleMedium),
               Text(
-                Formatters.formatCurrency(_total),
+                Formatters.formatCurrency(total),
                 style: AppTextStyles.titleMedium.copyWith(
                   color: AppColors.primary,
                 ),
@@ -621,7 +638,7 @@ class _CartScreenState extends State<CartScreen> {
                   Icon(Icons.celebration, size: 16, color: AppColors.success),
                   const SizedBox(width: 8),
                   Text(
-                    'You saved \u20B9${_couponDiscount.toStringAsFixed(0)} with coupon!',
+                    l10n.savedWithCoupon(_couponDiscount.toStringAsFixed(0)),
                     style: AppTextStyles.labelMedium.copyWith(
                       color: AppColors.success,
                     ),
@@ -669,7 +686,7 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCheckoutBar() {
+  Widget _buildCheckoutBar(AppLocalizations l10n, double total) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -691,7 +708,7 @@ class _CartScreenState extends State<CartScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    Formatters.formatCurrency(_total),
+                    Formatters.formatCurrency(total),
                     style: AppTextStyles.headlineSmall.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -701,7 +718,7 @@ class _CartScreenState extends State<CartScreen> {
                       // Scroll to bill details
                     },
                     child: Text(
-                      'View Bill Details',
+                      l10n.viewBillDetails,
                       style: AppTextStyles.labelSmall.copyWith(
                         color: AppColors.primary,
                         decoration: TextDecoration.underline,
@@ -713,7 +730,7 @@ class _CartScreenState extends State<CartScreen> {
             ),
             Expanded(
               child: PrimaryButton(
-                text: 'Checkout',
+                text: l10n.checkout,
                 icon: Icons.arrow_forward,
                 onPressed: () => context.push(AppRoutes.checkout),
               ),
@@ -736,33 +753,34 @@ class _CartScreenState extends State<CartScreen> {
     }
 
     setState(() {
-      final index = _cartItems.indexWhere((item) => item['id'] == itemId);
+      final index = _cartItemsState?.indexWhere((item) => item['id'] == itemId) ?? -1;
       if (index != -1) {
-        _cartItems[index]['quantity'] = newQuantity;
+        _cartItemsState![index]['quantity'] = newQuantity;
       }
     });
   }
 
   void _removeItem(String itemId) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Remove Item'),
-        content: const Text('Are you sure you want to remove this item?'),
+        title: Text(l10n.removeItem),
+        content: Text(l10n.removeItemConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               setState(() {
-                _cartItems.removeWhere((item) => item['id'] == itemId);
+                _cartItemsState?.removeWhere((item) => item['id'] == itemId);
               });
             },
             child: Text(
-              'Remove',
+              l10n.remove,
               style: TextStyle(color: AppColors.error),
             ),
           ),
@@ -771,7 +789,7 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  void _showCouponBottomSheet() {
+  void _showCouponBottomSheet(AppLocalizations l10n, double subtotal) {
     final coupons = [
       {
         'code': 'FIRST50',
@@ -805,27 +823,27 @@ class _CartScreenState extends State<CartScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Apply Coupon', style: AppTextStyles.headlineSmall),
+            Text(l10n.applyCoupon, style: AppTextStyles.headlineSmall),
             const SizedBox(height: 16),
 
             // Coupon input
             TextField(
               decoration: InputDecoration(
-                hintText: 'Enter coupon code',
+                hintText: l10n.enterCouponCode,
                 suffixIcon: TextButton(
                   onPressed: () {
                     // Apply entered coupon
                   },
-                  child: const Text('Apply'),
+                  child: Text(l10n.apply),
                 ),
               ),
             ),
             const SizedBox(height: 24),
 
-            Text('Available Coupons', style: AppTextStyles.titleSmall),
+            Text(l10n.availableCoupons, style: AppTextStyles.titleSmall),
             const SizedBox(height: 12),
 
-            ...coupons.map((coupon) => _buildCouponCard(coupon)),
+            ...coupons.map((coupon) => _buildCouponCard(coupon, l10n, subtotal)),
 
             const SizedBox(height: 16),
           ],
@@ -834,8 +852,8 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCouponCard(Map<String, dynamic> coupon) {
-    final isApplicable = _subtotal >= (coupon['minOrder'] as double);
+  Widget _buildCouponCard(Map<String, dynamic> coupon, AppLocalizations l10n, double subtotal) {
+    final isApplicable = subtotal >= (coupon['minOrder'] as double);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -878,7 +896,7 @@ class _CartScreenState extends State<CartScreen> {
                 ),
                 if (!isApplicable)
                   Text(
-                    'Add \u20B9${((coupon['minOrder'] as double) - _subtotal).toStringAsFixed(0)} more to apply',
+                    l10n.addMoreToApply(((coupon['minOrder'] as double) - subtotal).toStringAsFixed(0)),
                     style: AppTextStyles.labelSmall.copyWith(
                       color: AppColors.error,
                     ),
@@ -895,7 +913,7 @@ class _CartScreenState extends State<CartScreen> {
                 });
                 Navigator.pop(context);
               },
-              child: const Text('Apply'),
+              child: Text(l10n.apply),
             ),
         ],
       ),

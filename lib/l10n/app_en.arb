@@ -1,0 +1,376 @@
+{
+  "@@locale": "en",
+
+  "appName": "Gongura Griha",
+  "appTagline": "Authentic Andhra Pickles",
+
+  "home": "Home",
+  "orders": "Orders",
+  "wishlist": "Wishlist",
+  "profile": "Profile",
+
+  "deliverTo": "Deliver to",
+  "searchPickles": "Search pickles...",
+  "shopNow": "Shop Now",
+  "categories": "Categories",
+  "featuredProducts": "Featured Products",
+  "viewAll": "View All",
+
+  "pachadi": "Pachadi",
+  "chutney": "Chutney",
+  "powder": "Powder",
+
+  "bannerTitle1": "Pure Gongura Delights",
+  "bannerSubtitle1": "Authentic Andhra Gongura Flavors",
+  "bannerTitle2": "100% Vegetarian",
+  "bannerSubtitle2": "Fresh Gongura Leaf Products",
+  "bannerTitle3": "Gongura Special",
+  "bannerSubtitle3": "Free delivery on orders above Rs.499",
+
+  "traditionalGonguraPachadi": "Traditional Gongura Pachadi",
+  "classicGonguraChutney": "Classic Gongura Chutney",
+  "spicyGonguraPodi": "Spicy Gongura Podi",
+
+  "pachadiDescription": "Authentic Andhra-style gongura pachadi made with fresh, hand-picked gongura leaves. This tangy and spicy pachadi is prepared using traditional recipes passed down through generations. Perfect accompaniment for hot rice and rotis.",
+  "chutneyDescription": "A delicious gongura chutney with the perfect blend of tangy and spicy flavors. Made fresh with tender gongura leaves, this chutney adds a burst of authentic South Indian taste to any meal. Ideal for dosas, idlis, and rice.",
+  "podiDescription": "A flavorful dry powder made from sun-dried gongura leaves and aromatic spices. This versatile podi can be mixed with rice and ghee, sprinkled on dosas, or used as a seasoning. A must-have for gongura lovers!",
+
+  "productDetails": "Product Details",
+  "description": "Description",
+  "ingredients": "Ingredients",
+  "selectSize": "Select Size",
+  "price": "Price",
+  "add": "Add",
+  "addToCart": "Add to Cart",
+  "addedToCart": "added to cart",
+  "viewCart": "VIEW CART",
+
+  "gonguraLeaves": "Gongura Leaves",
+  "redChillies": "Red Chillies",
+  "mustardSeeds": "Mustard Seeds",
+  "fenugreekSeeds": "Fenugreek",
+  "garlic": "Garlic",
+  "salt": "Salt",
+  "groundnutOil": "Groundnut Oil",
+
+  "myCart": "My Cart",
+  "cartEmpty": "Your cart is empty",
+  "addPicklesToCart": "Add some delicious pickles to your cart",
+  "browseProducts": "Browse Products",
+  "addMoreForFreeDelivery": "Add Rs.{amount} more for FREE delivery",
+  "@addMoreForFreeDelivery": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "quantity": "Quantity",
+  "maxQuantityHint": "Max {max} for this size. Try a larger size for more!",
+  "@maxQuantityHint": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "applyCoupon": "Apply Coupon",
+  "availableCoupons": "Available Coupons",
+  "enterCouponCode": "Enter coupon code",
+  "apply": "Apply",
+  "remove": "Remove",
+  "youSaved": "You saved Rs.{amount}",
+  "@youSaved": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "billDetails": "Bill Details",
+  "itemTotal": "Item Total",
+  "couponDiscount": "Coupon Discount",
+  "delivery": "Delivery",
+  "free": "FREE",
+  "toPay": "To Pay",
+  "savedWithCoupon": "You saved Rs.{amount} with coupon!",
+  "@savedWithCoupon": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "viewBillDetails": "View Bill Details",
+  "checkout": "Checkout",
+  "removeItem": "Remove Item",
+  "removeItemConfirm": "Are you sure you want to remove this item?",
+  "cancel": "Cancel",
+
+  "myOrders": "My Orders",
+  "active": "Active",
+  "pastOrders": "Past Orders",
+  "noActiveOrders": "No active orders",
+  "noPastOrders": "No past orders",
+  "activeOrdersAppearHere": "Your active orders will appear here",
+  "orderHistoryAppearHere": "Your order history will appear here",
+  "items": "Items",
+  "moreItems": "{count} more item",
+  "@moreItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "expectedBy": "Expected by",
+  "deliveredOn": "Delivered on",
+  "reorder": "Reorder",
+  "rate": "Rate",
+
+  "orderPlaced": "Placed",
+  "orderConfirmed": "Confirmed",
+  "orderPreparing": "Preparing",
+  "orderShipped": "Shipped",
+  "orderDelivered": "Delivered",
+  "outForDelivery": "Out for Delivery",
+
+  "orderStatus": "Order Status",
+  "viewInvoice": "View Invoice",
+  "deliveryAddress": "Delivery Address",
+  "paymentDetails": "Payment Details",
+  "paid": "Paid",
+  "transactionId": "Transaction ID",
+  "totalPaid": "Total Paid",
+  "needHelp": "Need Help?",
+  "chatWithUs": "Chat with us",
+  "callSupport": "Call support",
+  "cancelOrder": "Cancel order",
+  "cancelOrderConfirm": "Are you sure you want to cancel this order?",
+  "yesCancelOrder": "Yes, Cancel",
+  "no": "No",
+
+  "myWishlist": "My Wishlist",
+  "wishlistEmpty": "Your wishlist is empty",
+  "saveItemsForLater": "Save items you love for later",
+  "discoverProducts": "Discover Products",
+  "moveToCart": "Move to Cart",
+  "movedToCart": "moved to cart",
+  "removedFromWishlist": "removed from wishlist",
+
+  "myProfile": "My Profile",
+  "editProfile": "Edit Profile",
+  "myAddresses": "My Addresses",
+  "paymentMethods": "Payment Methods",
+  "notifications": "Notifications",
+  "settings": "Settings",
+  "helpSupport": "Help & Support",
+  "aboutUs": "About Us",
+  "logout": "Logout",
+  "logoutConfirm": "Are you sure you want to logout?",
+  "yesLogout": "Yes, Logout",
+
+  "language": "Language",
+  "languageChangeInfo": "Select your preferred language. The app will restart to apply changes.",
+  "changeLanguage": "Change Language",
+  "languageChangeConfirm": "The app needs to restart to apply the language change. Continue?",
+  "continue_": "Continue",
+  "languageChangedTo": "Language changed to {language}",
+  "@languageChangedTo": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+
+  "english": "English",
+  "hindi": "Hindi",
+  "telugu": "Telugu",
+
+  "aboutUsTitle": "About Us",
+  "ourStory": "Our Story",
+  "ourStoryContent": "Gongura Griha was born from a passion for authentic Andhra flavors. Started by a family of pickle enthusiasts in Hyderabad, we bring you the taste of homemade Andhra pickles, made with love and traditional recipes passed down through generations.\n\nOur gongura pickles are made from the finest sorrel leaves, sourced directly from farms in Telangana, ensuring the authentic tangy taste that Andhra pickles are famous for.",
+  "whyChooseUs": "Why Choose Us",
+  "natural100": "100% Natural",
+  "naturalDesc": "No preservatives or artificial colors",
+  "authenticRecipes": "Authentic Recipes",
+  "authenticDesc": "Traditional Andhra cooking methods",
+  "freshDelivery": "Fresh Delivery",
+  "freshDeliveryDesc": "Delivered fresh to your doorstep",
+  "madeWithLove": "Made with Love",
+  "madeWithLoveDesc": "Handcrafted in small batches",
+  "connectWithUs": "Connect With Us",
+  "contactInformation": "Contact Information",
+  "address": "Address",
+  "email": "Email",
+  "phone": "Phone",
+  "version": "Version",
+  "madeInIndia": "Made with love in India",
+
+  "allProducts": "All Products",
+  "filter": "Filter",
+  "sortBy": "Sort By",
+  "priceRange": "Price Range",
+  "clearAll": "Clear All",
+  "applyFilters": "Apply Filters",
+  "popularity": "Popularity",
+  "priceLowToHigh": "Price: Low to High",
+  "priceHighToLow": "Price: High to Low",
+  "newest": "Newest",
+  "noProductsFound": "No products found",
+  "tryDifferentFilters": "Try different filters or search terms",
+
+  "search": "Search",
+  "recentSearches": "Recent Searches",
+  "clearHistory": "Clear History",
+  "searchResults": "Search Results",
+  "noResults": "No results found",
+  "tryDifferentKeywords": "Try different keywords",
+
+  "veg": "Veg",
+  "nonVeg": "Non-Veg",
+
+  "sort": "Sort",
+  "filters": "Filters",
+  "reset": "Reset",
+  "mostPopular": "Most Popular",
+  "nameAToZ": "Name: A to Z",
+  "dietaryPreference": "Dietary Preference",
+  "all": "All",
+  "vegOnly": "Veg Only",
+  "clearFilters": "Clear Filters",
+  "productsCount": "{count} products",
+  "@productsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tryAdjustingFilters": "Try adjusting your filters",
+
+  "calories": "Calories",
+  "protein": "Protein",
+  "carbs": "Carbs",
+  "fat": "Fat",
+  "sodium": "Sodium",
+
+  "highlight100Natural": "Made with 100% natural ingredients",
+  "highlightNoPreservatives": "No preservatives or artificial colors",
+  "highlightTraditionalRecipe": "Traditional Andhra recipe",
+  "highlightFreshGongura": "Fresh gongura leaves from Andhra Pradesh",
+  "highlightShelfLife6Months": "Shelf life: 6 months",
+  "highlightTangySpicy": "Perfect tangy-spicy balance",
+  "highlightNoArtificial": "No artificial flavors or colors",
+  "highlightFreshSpices": "Freshly ground spices",
+  "highlightHandcrafted": "Handcrafted in small batches",
+  "highlightShelfLife4Months": "Shelf life: 4 months",
+  "highlightSunDried": "Sun-dried gongura leaves",
+  "highlightCoarseGround": "Coarsely ground for best texture",
+  "highlightRichInIron": "Rich in iron and vitamins",
+  "highlightShelfLife8Months": "Long shelf life - 8 months",
+  "highlightVersatile": "Versatile usage",
+
+  "redChillies": "Red Chillies",
+  "greenChillies": "Green Chillies",
+  "tamarind": "Tamarind",
+  "cuminSeeds": "Cumin Seeds",
+  "cumin": "Cumin",
+  "sesameOil": "Sesame Oil",
+  "driedGonguraLeaves": "Dried Gongura Leaves",
+  "uradDal": "Urad Dal",
+  "chanaDal": "Chana Dal",
+
+  "selectSize": "Select Size",
+  "highlights": "Highlights",
+  "nutritionInfoPer": "Nutrition Info (per {weight})",
+  "@nutritionInfoPer": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+
+  "myCart": "My Cart",
+  "cartEmpty": "Your cart is empty",
+  "addPicklesToCart": "Add some delicious pickles to your cart",
+  "browseProducts": "Browse Products",
+  "addMoreForFreeDelivery": "Add ₹{amount} more for FREE delivery",
+  "@addMoreForFreeDelivery": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "maxQuantityHint": "Max {max} for this size. Try a larger size for more!",
+  "@maxQuantityHint": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "youSaved": "You saved ₹{amount}",
+  "@youSaved": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savedWithCoupon": "You saved ₹{amount} with coupon!",
+  "@savedWithCoupon": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "billDetails": "Bill Details",
+  "itemTotal": "Item Total",
+  "couponDiscount": "Coupon Discount",
+  "toPay": "To Pay",
+  "viewBillDetails": "View Bill Details",
+  "removeItem": "Remove Item",
+  "removeItemConfirm": "Are you sure you want to remove this item?",
+  "enterCouponCode": "Enter coupon code",
+  "availableCoupons": "Available Coupons",
+  "addMoreToApply": "Add ₹{amount} more to apply",
+  "@addMoreToApply": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+
+  "statusOrderConfirmed": "Order Confirmed",
+  "statusOutForDelivery": "Out for Delivery",
+  "tomorrowDelivery": "Tomorrow, by 8 PM",
+  "todayDelivery": "Today, by 6 PM",
+
+  "account": "Account",
+  "savedAddresses": "Saved Addresses",
+  "addressesCount": "{count} addresses",
+  "@addressesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "preferences": "Preferences",
+  "support": "Support",
+  "termsConditions": "Terms & Conditions",
+  "privacyPolicy": "Privacy Policy",
+
+  "popularSearches": "Popular Searches",
+  "browseCategories": "Browse Categories",
+  "vegPickles": "Veg Pickles",
+  "nonVegPickles": "Non-Veg Pickles",
+  "chutneys": "Chutneys",
+  "giftPacks": "Gift Packs"
+}

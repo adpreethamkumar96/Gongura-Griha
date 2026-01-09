@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
+import '../l10n/app_localizations.dart';
+
+import '../core/providers/locale_provider.dart';
 import 'routes.dart';
 import 'theme/app_theme.dart';
+
+/// Global locale provider instance
+final localeProvider = LocaleProvider();
 
 /// Main App Widget
 ///
@@ -11,15 +18,12 @@ class GonguraGrihaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO(bloc): Wrap with MultiBlocProvider when BLoCs are implemented
-    // return MultiBlocProvider(
-    //   providers: [
-    //     BlocProvider<AuthBloc>(create: (_) => getIt<AuthBloc>()),
-    //     BlocProvider<CartBloc>(create: (_) => getIt<CartBloc>()),
-    //   ],
-    //   child: _buildMaterialApp(),
-    // );
-    return _buildMaterialApp();
+    return ListenableBuilder(
+      listenable: localeProvider,
+      builder: (context, child) {
+        return _buildMaterialApp();
+      },
+    );
   }
 
   Widget _buildMaterialApp() {
@@ -28,6 +32,16 @@ class GonguraGrihaApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       routerConfig: createRouter(),
+
+      // Localization
+      locale: localeProvider.locale,
+      supportedLocales: LocaleProvider.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
     );
   }
 }

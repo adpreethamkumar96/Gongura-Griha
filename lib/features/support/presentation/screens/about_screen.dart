@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// About Screen
 ///
@@ -12,6 +13,8 @@ class AboutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
@@ -45,14 +48,14 @@ class AboutScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Gongura Griha',
+                      l10n.appName,
                       style: AppTextStyles.headlineMedium.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      'Authentic Andhra Pickles',
+                      l10n.appTagline,
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: Colors.white70,
                       ),
@@ -70,43 +73,36 @@ class AboutScreen extends StatelessWidget {
 
                 // Our Story
                 _buildSection(
-                  title: 'Our Story',
-                  content:
-                      'Gongura Griha was born from a passion for authentic Andhra flavors. '
-                      'Started by a family of pickle enthusiasts in Hyderabad, we bring you '
-                      'the taste of homemade Andhra pickles, made with love and traditional recipes '
-                      'passed down through generations.\n\n'
-                      'Our gongura pickles are made from the finest sorrel leaves, sourced directly '
-                      'from farms in Telangana, ensuring the authentic tangy taste that Andhra '
-                      'pickles are famous for.',
+                  title: l10n.ourStory,
+                  content: l10n.ourStoryContent,
                 ),
 
                 const SizedBox(height: 16),
 
                 // Why Choose Us
                 _buildSection(
-                  title: 'Why Choose Us',
+                  title: l10n.whyChooseUs,
                   child: Column(
                     children: [
                       _buildFeatureItem(
                         icon: Icons.eco,
-                        title: '100% Natural',
-                        description: 'No preservatives or artificial colors',
+                        title: l10n.natural100,
+                        description: l10n.naturalDesc,
                       ),
                       _buildFeatureItem(
                         icon: Icons.verified,
-                        title: 'Authentic Recipes',
-                        description: 'Traditional Andhra cooking methods',
+                        title: l10n.authenticRecipes,
+                        description: l10n.authenticDesc,
                       ),
                       _buildFeatureItem(
                         icon: Icons.local_shipping,
-                        title: 'Fresh Delivery',
-                        description: 'Delivered fresh to your doorstep',
+                        title: l10n.freshDelivery,
+                        description: l10n.freshDeliveryDesc,
                       ),
                       _buildFeatureItem(
                         icon: Icons.favorite,
-                        title: 'Made with Love',
-                        description: 'Handcrafted in small batches',
+                        title: l10n.madeWithLove,
+                        description: l10n.madeWithLoveDesc,
                       ),
                     ],
                   ),
@@ -116,7 +112,7 @@ class AboutScreen extends StatelessWidget {
 
                 // Connect With Us
                 _buildSection(
-                  title: 'Connect With Us',
+                  title: l10n.connectWithUs,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -151,13 +147,13 @@ class AboutScreen extends StatelessWidget {
 
                 // Contact Info
                 _buildSection(
-                  title: 'Contact Information',
+                  title: l10n.contactInformation,
                   child: Column(
                     children: [
                       ListTile(
                         leading: Icon(Icons.location_on,
                             color: AppColors.primary),
-                        title: const Text('Address'),
+                        title: Text(l10n.address),
                         subtitle: const Text(
                           'Sierra - I - 701, Rajapushpa Atria,\n'
                           'Kokapet, Hyderabad, Telangana - 500075',
@@ -165,14 +161,14 @@ class AboutScreen extends StatelessWidget {
                       ),
                       ListTile(
                         leading: Icon(Icons.email, color: AppColors.primary),
-                        title: const Text('Email'),
+                        title: Text(l10n.email),
                         subtitle: const Text('info@gonguragriha.com'),
                         onTap: () => _launchUrl(
                             'mailto:info@gonguragriha.com'),
                       ),
                       ListTile(
                         leading: Icon(Icons.phone, color: AppColors.primary),
-                        title: const Text('Phone'),
+                        title: Text(l10n.phone),
                         subtitle: const Text('+91 7995314630'),
                         onTap: () => _launchUrl('tel:+917995314630'),
                       ),
@@ -184,7 +180,7 @@ class AboutScreen extends StatelessWidget {
 
                 // App Version
                 Text(
-                  'Version 1.0.0',
+                  '${l10n.version} 1.0.0',
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.textTertiary,
                   ),
@@ -193,7 +189,7 @@ class AboutScreen extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 Text(
-                  'Made with love in India',
+                  l10n.madeInIndia,
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.textTertiary,
                   ),
