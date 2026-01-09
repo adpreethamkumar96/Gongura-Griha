@@ -151,32 +151,32 @@ GoRouter createRouter() {
             name: 'profile',
             builder: (context, state) => const ProfileScreen(),
           ),
+
+          // Product Routes (inside shell for persistent nav bar)
+          GoRoute(
+            path: AppRoutes.productList,
+            name: 'productList',
+            builder: (context, state) {
+              final category = state.uri.queryParameters['category'];
+              return ProductListScreen(category: category);
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.productDetail,
+            name: 'productDetail',
+            builder: (context, state) {
+              final slug = state.pathParameters['slug']!;
+              return ProductDetailScreen(slug: slug);
+            },
+          ),
+
+          // Cart
+          GoRoute(
+            path: AppRoutes.cart,
+            name: 'cart',
+            builder: (context, state) => const CartScreen(),
+          ),
         ],
-      ),
-
-      // Product Routes
-      GoRoute(
-        path: AppRoutes.productList,
-        name: 'productList',
-        builder: (context, state) {
-          final category = state.uri.queryParameters['category'];
-          return ProductListScreen(category: category);
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.productDetail,
-        name: 'productDetail',
-        builder: (context, state) {
-          final slug = state.pathParameters['slug']!;
-          return ProductDetailScreen(slug: slug);
-        },
-      ),
-
-      // Cart & Checkout
-      GoRoute(
-        path: AppRoutes.cart,
-        name: 'cart',
-        builder: (context, state) => const CartScreen(),
       ),
       GoRoute(
         path: AppRoutes.checkout,
@@ -320,7 +320,11 @@ class _MainShell extends StatelessWidget {
   int _calculateSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
     if (location.startsWith('/home')) return 0;
+    if (location.startsWith('/products')) return 0;
+    if (location.startsWith('/product/')) return 0;
+    if (location.startsWith('/cart')) return 0;
     if (location.startsWith('/orders')) return 1;
+    if (location.startsWith('/order/')) return 1;
     if (location.startsWith('/wishlist')) return 2;
     if (location.startsWith('/profile')) return 3;
     return 0;
