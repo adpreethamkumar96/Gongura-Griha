@@ -288,31 +288,52 @@ class _MainShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: child,
-      bottomNavigationBar: NavigationBar(
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.shopping_bag_outlined),
-            selectedIcon: Icon(Icons.shopping_bag),
-            label: 'Orders',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.favorite_outline),
-            selectedIcon: Icon(Icons.favorite),
-            label: 'Wishlist',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-        selectedIndex: _calculateSelectedIndex(context),
-        onDestinationSelected: (index) => _onItemTapped(index, context),
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          indicatorColor: Colors.transparent,
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF4A7C59),
+              );
+            }
+            return const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey,
+            );
+          }),
+        ),
+        child: NavigationBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          destinations: [
+            NavigationDestination(
+              icon: const Icon(Icons.home_outlined, color: Colors.grey),
+              selectedIcon: const Icon(Icons.home, color: Color(0xFF4A7C59)),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.shopping_bag_outlined, color: Colors.grey),
+              selectedIcon: const Icon(Icons.shopping_bag, color: Color(0xFF4A7C59)),
+              label: 'Orders',
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.favorite_outline, color: Colors.grey),
+              selectedIcon: const Icon(Icons.favorite, color: Color(0xFF4A7C59)),
+              label: 'Wishlist',
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.person_outline, color: Colors.grey),
+              selectedIcon: const Icon(Icons.person, color: Color(0xFF4A7C59)),
+              label: 'Profile',
+            ),
+          ],
+          selectedIndex: _calculateSelectedIndex(context),
+          onDestinationSelected: (index) => _onItemTapped(index, context),
+        ),
       ),
     );
   }
