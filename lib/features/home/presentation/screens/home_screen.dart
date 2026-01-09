@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_typography.dart';
-import '../../../../shared/widgets/cards/category_card.dart';
 import '../../../../shared/widgets/cards/product_card.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
 
@@ -23,10 +22,10 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentBannerIndex = 0;
 
   // Demo data - Replace with actual data from API
-  final List<Map<String, String>> _categories = [
-    {'name': 'Pachadi', 'image': 'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?w=200'},
-    {'name': 'Chutney', 'image': 'https://images.unsplash.com/photo-1546470427-227c7aa45214?w=200'},
-    {'name': 'Powder', 'image': 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=200'},
+  final List<Map<String, dynamic>> _categories = [
+    {'name': 'Pachadi', 'icon': Icons.rice_bowl},
+    {'name': 'Chutney', 'icon': Icons.blender},
+    {'name': 'Powder', 'icon': Icons.grain},
   ];
 
   final List<Map<String, dynamic>> _banners = [
@@ -285,15 +284,44 @@ class _HomeScreenState extends State<HomeScreen> {
             itemBuilder: (context, index) {
               final category = _categories[index];
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: CategoryCard(
-                  name: category['name']!,
-                  imageUrl: category['image']!,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: GestureDetector(
                   onTap: () {
                     context.push(
                       '${AppRoutes.productList}?category=${category['name']}',
                     );
                   },
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withAlpha(26),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.primary.withAlpha(50),
+                            width: 2,
+                          ),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            category['icon'] as IconData,
+                            size: 32,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        category['name'] as String,
+                        style: AppTypography.labelMedium.copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
