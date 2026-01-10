@@ -5,6 +5,7 @@ import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Order Detail Screen
 ///
@@ -17,36 +18,45 @@ class OrderDetailScreen extends StatelessWidget {
     required this.orderNumber,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    // Mock order data
-    final order = {
-      'orderNumber': orderNumber,
+  // Get order data based on order number
+  Map<String, dynamic>? _getOrderData(AppLocalizations l10n) {
+    final allOrders = _getAllOrders(l10n);
+    try {
+      return allOrders.firstWhere((o) => o['orderNumber'] == orderNumber);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // All orders data matching orders_screen.dart
+  List<Map<String, dynamic>> _getAllOrders(AppLocalizations l10n) => [
+    {
+      'orderNumber': 'GG78945612',
       'date': DateTime.now().subtract(const Duration(hours: 2)),
-      'status': 'shipped',
-      'statusText': 'Out for Delivery',
+      'status': 'processing',
+      'statusText': l10n.statusOrderConfirmed,
+      'currentStage': 1,
       'items': [
         {
-          'name': 'Classic Gongura Pickle',
+          'name': l10n.traditionalGonguraPachadi,
           'quantity': 2,
           'size': '500g',
-          'price': 549.0,
-          'image':
-              'https://via.placeholder.com/80x80/4CAF50/FFFFFF?text=Gongura',
+          'price': 349.0,
+          'image': 'assets/images/GonguraPickle.png',
         },
         {
-          'name': 'Spicy Gongura Mutton',
+          'name': l10n.spicyGonguraPodi,
           'quantity': 1,
           'size': '250g',
-          'price': 549.0,
-          'image':
-              'https://via.placeholder.com/80x80/FF5722/FFFFFF?text=Mutton',
+          'price': 179.0,
+          'image': 'assets/images/GonguraPowder.png',
         },
       ],
-      'subtotal': 1647.0,
-      'discount': 100.0,
+      'subtotal': 877.0,
+      'discount': 50.0,
       'deliveryCharge': 0.0,
-      'total': 1547.0,
+      'total': 827.0,
+      'estimatedDelivery': l10n.tomorrowDelivery,
       'address': {
         'name': 'Ramesh Kumar',
         'phone': '+91 98765 43210',
@@ -55,48 +65,195 @@ class OrderDetailScreen extends StatelessWidget {
       },
       'payment': {
         'method': 'UPI',
-        'status': 'Paid',
+        'status': l10n.paid,
         'transactionId': 'TXN123456789',
       },
-      'tracking': [
+    },
+    {
+      'orderNumber': 'GG78912345',
+      'date': DateTime.now().subtract(const Duration(days: 3)),
+      'status': 'shipped',
+      'statusText': l10n.statusOutForDelivery,
+      'currentStage': 3,
+      'items': [
         {
-          'status': 'Order Placed',
-          'time': DateTime.now().subtract(const Duration(hours: 2)),
-          'completed': true,
-        },
-        {
-          'status': 'Order Confirmed',
-          'time': DateTime.now().subtract(const Duration(hours: 1, minutes: 45)),
-          'completed': true,
-        },
-        {
-          'status': 'Preparing',
-          'time': DateTime.now().subtract(const Duration(hours: 1)),
-          'completed': true,
-        },
-        {
-          'status': 'Out for Delivery',
-          'time': DateTime.now().subtract(const Duration(minutes: 30)),
-          'completed': true,
-        },
-        {
-          'status': 'Delivered',
-          'time': null,
-          'completed': false,
+          'name': l10n.classicGonguraChutney,
+          'quantity': 2,
+          'size': '250g',
+          'price': 199.0,
+          'image': 'assets/images/GonguraChutney.png',
         },
       ],
-      'estimatedDelivery': 'Today, 4 PM - 8 PM',
-    };
+      'subtotal': 398.0,
+      'discount': 0.0,
+      'deliveryCharge': 0.0,
+      'total': 398.0,
+      'estimatedDelivery': l10n.todayDelivery,
+      'address': {
+        'name': 'Ramesh Kumar',
+        'phone': '+91 98765 43210',
+        'address': '123, Green Valley Apartments, Near City Mall',
+        'city': 'Hyderabad - 500001',
+      },
+      'payment': {
+        'method': 'UPI',
+        'status': l10n.paid,
+        'transactionId': 'TXN987654321',
+      },
+    },
+    {
+      'orderNumber': 'GG78901234',
+      'date': DateTime.now().subtract(const Duration(days: 7)),
+      'status': 'delivered',
+      'statusText': l10n.orderDelivered,
+      'currentStage': 4,
+      'items': [
+        {
+          'name': l10n.traditionalGonguraPachadi,
+          'quantity': 1,
+          'size': '1kg',
+          'price': 599.0,
+          'image': 'assets/images/GonguraPickle.png',
+        },
+        {
+          'name': l10n.spicyGonguraPodi,
+          'quantity': 1,
+          'size': '500g',
+          'price': 299.0,
+          'image': 'assets/images/GonguraPowder.png',
+        },
+      ],
+      'subtotal': 898.0,
+      'discount': 100.0,
+      'deliveryCharge': 0.0,
+      'total': 798.0,
+      'deliveredOn': DateTime.now().subtract(const Duration(days: 5)),
+      'address': {
+        'name': 'Ramesh Kumar',
+        'phone': '+91 98765 43210',
+        'address': '123, Green Valley Apartments, Near City Mall',
+        'city': 'Hyderabad - 500001',
+      },
+      'payment': {
+        'method': 'COD',
+        'status': l10n.paid,
+        'transactionId': 'COD-78901234',
+      },
+    },
+    {
+      'orderNumber': 'GG78891234',
+      'date': DateTime.now().subtract(const Duration(days: 30)),
+      'status': 'delivered',
+      'statusText': l10n.orderDelivered,
+      'currentStage': 4,
+      'items': [
+        {
+          'name': l10n.classicGonguraChutney,
+          'quantity': 2,
+          'size': '250g',
+          'price': 199.0,
+          'image': 'assets/images/GonguraChutney.png',
+        },
+      ],
+      'subtotal': 398.0,
+      'discount': 0.0,
+      'deliveryCharge': 40.0,
+      'total': 438.0,
+      'deliveredOn': DateTime.now().subtract(const Duration(days: 27)),
+      'address': {
+        'name': 'Ramesh Kumar',
+        'phone': '+91 98765 43210',
+        'address': '456, Sunshine Colony, Madhapur',
+        'city': 'Hyderabad - 500081',
+      },
+      'payment': {
+        'method': 'UPI',
+        'status': l10n.paid,
+        'transactionId': 'TXN456789012',
+      },
+    },
+  ];
+
+  // Generate tracking data based on current stage
+  List<Map<String, dynamic>> _getTrackingData(
+    AppLocalizations l10n,
+    int currentStage,
+    DateTime orderDate,
+    DateTime? deliveredOn,
+  ) {
+    final stages = [
+      l10n.orderPlaced,
+      l10n.orderConfirmed,
+      l10n.orderPreparing,
+      l10n.outForDelivery,
+      l10n.orderDelivered,
+    ];
+
+    return List.generate(stages.length, (index) {
+      DateTime? time;
+      if (index <= currentStage) {
+        if (index == 4 && deliveredOn != null) {
+          time = deliveredOn;
+        } else if (index <= currentStage) {
+          // Calculate approximate times based on order date
+          switch (index) {
+            case 0:
+              time = orderDate;
+              break;
+            case 1:
+              time = orderDate.add(const Duration(minutes: 15));
+              break;
+            case 2:
+              time = orderDate.add(const Duration(hours: 1));
+              break;
+            case 3:
+              time = orderDate.add(const Duration(hours: 4));
+              break;
+            case 4:
+              time = deliveredOn ?? orderDate.add(const Duration(hours: 6));
+              break;
+          }
+        }
+      }
+
+      return {
+        'status': stages[index],
+        'time': index <= currentStage ? time : null,
+        'completed': index <= currentStage,
+      };
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final order = _getOrderData(l10n);
+
+    if (order == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text('${l10n.orders} #$orderNumber')),
+        body: Center(
+          child: Text(l10n.noResults),
+        ),
+      );
+    }
+
+    final currentStage = order['currentStage'] as int;
+    final isDelivered = order['status'] == 'delivered';
+    final tracking = _getTrackingData(
+      l10n,
+      currentStage,
+      order['date'] as DateTime,
+      order['deliveredOn'] as DateTime?,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Order #$orderNumber'),
+        title: Text('${l10n.orders} #$orderNumber'),
         actions: [
           IconButton(
-            onPressed: () {
-              // Help
-            },
+            onPressed: () {},
             icon: const Icon(Icons.help_outline),
           ),
         ],
@@ -106,37 +263,37 @@ class OrderDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Status Card
-            _buildStatusCard(context, order),
+            _buildStatusCard(context, order, l10n, isDelivered),
 
             const SizedBox(height: 8),
 
             // Tracking Timeline
-            _buildTrackingSection(context, order),
+            _buildTrackingSection(context, tracking, l10n),
 
             const SizedBox(height: 8),
 
             // Items
-            _buildItemsSection(context, order),
+            _buildItemsSection(context, order, l10n),
 
             const SizedBox(height: 8),
 
             // Delivery Address
-            _buildAddressSection(context, order),
+            _buildAddressSection(context, order, l10n),
 
             const SizedBox(height: 8),
 
             // Payment Details
-            _buildPaymentSection(context, order),
+            _buildPaymentSection(context, order, l10n),
 
             const SizedBox(height: 8),
 
             // Bill Details
-            _buildBillSection(context, order),
+            _buildBillSection(context, order, l10n),
 
             const SizedBox(height: 16),
 
             // Help Section
-            _buildHelpSection(context),
+            if (!isDelivered) _buildHelpSection(context, l10n),
 
             const SizedBox(height: 24),
           ],
@@ -145,7 +302,37 @@ class OrderDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusCard(BuildContext context, Map<String, dynamic> order) {
+  Widget _buildStatusCard(
+    BuildContext context,
+    Map<String, dynamic> order,
+    AppLocalizations l10n,
+    bool isDelivered,
+  ) {
+    final statusText = order['statusText'] as String;
+    final status = order['status'] as String;
+
+    // Determine icon and color based on status
+    IconData statusIcon;
+    Color statusColor;
+
+    switch (status) {
+      case 'processing':
+        statusIcon = Icons.inventory_2_outlined;
+        statusColor = AppColors.accent;
+        break;
+      case 'shipped':
+        statusIcon = Icons.local_shipping;
+        statusColor = AppColors.info;
+        break;
+      case 'delivered':
+        statusIcon = Icons.check_circle;
+        statusColor = AppColors.success;
+        break;
+      default:
+        statusIcon = Icons.receipt_long;
+        statusColor = AppColors.primary;
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       color: AppColors.surface,
@@ -154,12 +341,12 @@ class OrderDetailScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.info.withAlpha(26),
+              color: statusColor.withAlpha(26),
               shape: BoxShape.circle,
             ),
             child: Icon(
-              Icons.local_shipping,
-              color: AppColors.info,
+              statusIcon,
+              color: statusColor,
               size: 28,
             ),
           ),
@@ -169,14 +356,16 @@ class OrderDetailScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  order['statusText'] as String,
+                  statusText,
                   style: AppTextStyles.titleMedium.copyWith(
-                    color: AppColors.info,
+                    color: statusColor,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Expected by ${order['estimatedDelivery']}',
+                  isDelivered
+                      ? '${l10n.deliveredOn} ${Formatters.formatDate(order['deliveredOn'] as DateTime)}'
+                      : '${l10n.expectedBy} ${order['estimatedDelivery']}',
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -190,16 +379,17 @@ class OrderDetailScreen extends StatelessWidget {
   }
 
   Widget _buildTrackingSection(
-      BuildContext context, Map<String, dynamic> order) {
-    final tracking = order['tracking'] as List;
-
+    BuildContext context,
+    List<Map<String, dynamic>> tracking,
+    AppLocalizations l10n,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       color: AppColors.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Order Status', style: AppTextStyles.titleSmall),
+          Text(l10n.orderStatus, style: AppTextStyles.titleSmall),
           const SizedBox(height: 16),
           ...tracking.asMap().entries.map((entry) {
             final index = entry.key;
@@ -279,7 +469,11 @@ class OrderDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildItemsSection(BuildContext context, Map<String, dynamic> order) {
+  Widget _buildItemsSection(
+    BuildContext context,
+    Map<String, dynamic> order,
+    AppLocalizations l10n,
+  ) {
     final items = order['items'] as List;
 
     return Container(
@@ -291,12 +485,10 @@ class OrderDetailScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Items (${items.length})', style: AppTextStyles.titleSmall),
+              Text('${l10n.items} (${items.length})', style: AppTextStyles.titleSmall),
               TextButton(
-                onPressed: () {
-                  // View invoice
-                },
-                child: const Text('View Invoice'),
+                onPressed: () {},
+                child: Text(l10n.viewInvoice),
               ),
             ],
           ),
@@ -307,16 +499,17 @@ class OrderDetailScreen extends StatelessWidget {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        item['image'] as String,
+                      child: Container(
                         width: 60,
                         height: 60,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          width: 60,
-                          height: 60,
-                          color: AppColors.backgroundSecondary,
-                          child: Icon(Icons.image, color: AppColors.textTertiary),
+                        color: AppColors.primary.withAlpha(20),
+                        child: Image.asset(
+                          item['image'] as String,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(
+                            Icons.eco,
+                            color: AppColors.primary.withAlpha(100),
+                          ),
                         ),
                       ),
                     ),
@@ -353,7 +546,10 @@ class OrderDetailScreen extends StatelessWidget {
   }
 
   Widget _buildAddressSection(
-      BuildContext context, Map<String, dynamic> order) {
+    BuildContext context,
+    Map<String, dynamic> order,
+    AppLocalizations l10n,
+  ) {
     final address = order['address'] as Map<String, dynamic>;
 
     return Container(
@@ -362,7 +558,7 @@ class OrderDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Delivery Address', style: AppTextStyles.titleSmall),
+          Text(l10n.deliveryAddress, style: AppTextStyles.titleSmall),
           const SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -410,7 +606,10 @@ class OrderDetailScreen extends StatelessWidget {
   }
 
   Widget _buildPaymentSection(
-      BuildContext context, Map<String, dynamic> order) {
+    BuildContext context,
+    Map<String, dynamic> order,
+    AppLocalizations l10n,
+  ) {
     final payment = order['payment'] as Map<String, dynamic>;
 
     return Container(
@@ -419,7 +618,7 @@ class OrderDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Payment Details', style: AppTextStyles.titleSmall),
+          Text(l10n.paymentDetails, style: AppTextStyles.titleSmall),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -444,7 +643,7 @@ class OrderDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Transaction ID: ${payment['transactionId']}',
+            '${l10n.transactionId}: ${payment['transactionId']}',
             style: AppTextStyles.bodySmall.copyWith(
               color: AppColors.textTertiary,
             ),
@@ -454,29 +653,33 @@ class OrderDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBillSection(BuildContext context, Map<String, dynamic> order) {
+  Widget _buildBillSection(
+    BuildContext context,
+    Map<String, dynamic> order,
+    AppLocalizations l10n,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       color: AppColors.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Bill Details', style: AppTextStyles.titleSmall),
+          Text(l10n.billDetails, style: AppTextStyles.titleSmall),
           const SizedBox(height: 12),
-          _buildBillRow('Item Total', order['subtotal'] as double),
-          _buildBillRow('Discount', -(order['discount'] as double),
-              isDiscount: true),
+          _buildBillRow(l10n.itemTotal, order['subtotal'] as double),
+          if ((order['discount'] as double) > 0)
+            _buildBillRow(l10n.couponDiscount, -(order['discount'] as double),
+                isDiscount: true),
           _buildBillRow(
-            'Delivery',
+            l10n.delivery,
             order['deliveryCharge'] as double,
-            subtitle:
-                (order['deliveryCharge'] as double) == 0 ? 'FREE' : null,
+            subtitle: (order['deliveryCharge'] as double) == 0 ? l10n.free : null,
           ),
           const Divider(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Total Paid', style: AppTextStyles.titleMedium),
+              Text(l10n.totalPaid, style: AppTextStyles.titleMedium),
               Text(
                 Formatters.formatCurrency(order['total'] as double),
                 style: AppTextStyles.titleMedium.copyWith(
@@ -524,47 +727,46 @@ class OrderDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHelpSection(BuildContext context) {
+  Widget _buildHelpSection(BuildContext context, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(16),
       color: AppColors.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Need Help?', style: AppTextStyles.titleSmall),
+          Text(l10n.needHelp, style: AppTextStyles.titleSmall),
           const SizedBox(height: 12),
           _buildHelpOption(
             icon: Icons.chat_outlined,
-            title: 'Chat with us',
+            title: l10n.chatWithUs,
             onTap: () {},
           ),
           _buildHelpOption(
             icon: Icons.phone_outlined,
-            title: 'Call support',
+            title: l10n.callSupport,
             onTap: () {},
           ),
           _buildHelpOption(
             icon: Icons.cancel_outlined,
-            title: 'Cancel order',
+            title: l10n.cancelOrder,
             onTap: () {
               showDialog(
                 context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Cancel Order'),
-                  content: const Text(
-                      'Are you sure you want to cancel this order?'),
+                builder: (dialogContext) => AlertDialog(
+                  title: Text(l10n.cancelOrder),
+                  content: Text(l10n.cancelOrderConfirm),
                   actions: [
                     TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('No'),
+                      onPressed: () => Navigator.pop(dialogContext),
+                      child: Text(l10n.no),
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        Navigator.pop(dialogContext);
                         context.go(AppRoutes.orders);
                       },
                       child: Text(
-                        'Yes, Cancel',
+                        l10n.yesCancelOrder,
                         style: TextStyle(color: AppColors.error),
                       ),
                     ),
