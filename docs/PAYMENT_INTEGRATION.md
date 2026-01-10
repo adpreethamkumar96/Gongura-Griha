@@ -1,8 +1,44 @@
 # Gongura-Griha: Payment Integration Guide
 
 > **Document Status:** Sacred - Must be followed for all implementation decisions
-> **Version:** 1.0.0
-> **Last Updated:** December 2024
+> **Version:** 1.1.0
+> **Last Updated:** January 2026
+> **Status:** Phase 2 - Backend Implementation
+> **Frontend Reference:** [FRONTEND_IMPLEMENTATION.md](./FRONTEND_IMPLEMENTATION.md)
+
+---
+
+## Frontend Checkout Implementation Status
+
+The frontend checkout screen is implemented with the following payment UI:
+
+### Payment Methods Displayed
+| Method | Icon | Color | Status |
+|--------|------|-------|--------|
+| UPI (GPay, PhonePe, Paytm) | account_balance_wallet | #00897B (UPI teal) | UI Ready |
+| Credit/Debit Card | credit_card | #1565C0 (Card blue) | UI Ready |
+| Cash on Delivery | payments | #795548 (COD brown) | UI Ready |
+
+### Checkout Flow (Frontend)
+1. User selects delivery address
+2. User sees estimated delivery time
+3. User selects payment method
+4. User reviews order summary
+5. User taps "Place Order"
+6. For UPI/Card → Open Razorpay checkout
+7. For COD → Direct order confirmation
+
+### Price Calculation (Frontend Implementation)
+```dart
+// Free delivery threshold
+const freeDeliveryThreshold = 499.0;
+const deliveryCharge = 49.0;
+
+// Coupon codes (mock)
+'GONGURA20' → 20% off (min ₹500)
+'FIRST50' → ₹50 off first order
+'FREESHIP' → Free delivery (min ₹299)
+```
 
 ---
 
@@ -392,6 +428,8 @@ async function initiateRefund(orderId, amount, reason) {
 
 ## 5. Flutter Implementation
 
+> **Note:** Phase 1 frontend uses StatefulWidget for state management. The BLoC implementation shown below is the target for Phase 2.
+
 ### 5.1 Package Setup
 
 ```yaml
@@ -400,7 +438,7 @@ dependencies:
   razorpay_flutter: ^1.3.6
 ```
 
-### 5.2 Payment Service
+### 5.2 Payment Service (Phase 2 Implementation)
 
 ```dart
 // lib/features/checkout/data/services/payment_service.dart
@@ -481,7 +519,9 @@ class PaymentService {
 }
 ```
 
-### 5.3 Checkout BLoC
+### 5.3 Checkout BLoC (Phase 2 Target)
+
+> **Current State:** Checkout screen uses StatefulWidget with local state. This BLoC pattern is the target architecture for Phase 2.
 
 ```dart
 // lib/features/checkout/presentation/bloc/checkout_bloc.dart

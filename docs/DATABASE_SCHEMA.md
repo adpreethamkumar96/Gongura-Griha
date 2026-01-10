@@ -1,8 +1,25 @@
 # Gongura-Griha: Database Schema
 
 > **Document Status:** Sacred - Must be followed for all implementation decisions
-> **Version:** 1.0.0
-> **Last Updated:** December 2024
+> **Version:** 1.1.0
+> **Last Updated:** January 2026
+> **Status:** Phase 2 - Backend Implementation
+> **Frontend Reference:** [FRONTEND_IMPLEMENTATION.md](./FRONTEND_IMPLEMENTATION.md)
+
+---
+
+## Frontend Alignment Notes
+
+This schema must support the data structures used in the frontend. Key alignment points:
+
+| Frontend Data | Database Table | Notes |
+|---------------|----------------|-------|
+| 3 Categories (Pachadi, Chutney, Powder) | `categories` | Match slugs exactly |
+| 3 Products with slugs | `products` | Use frontend slugs |
+| 3 Sizes per product (S/M/L) | `product_variants` | Include max_quantity |
+| Highlights list | `product_highlights` | NEW table needed |
+| Nutrition info | `products.nutrition_info` | JSONB structure |
+| Order statuses | `orders.status` | Match frontend timeline |
 
 ---
 
@@ -245,15 +262,14 @@ CREATE INDEX idx_categories_active ON categories(is_active) WHERE is_active = TR
 | is_active | BOOLEAN | Active/visible status |
 | sort_order | INTEGER | Display order |
 
-**Sample Data:**
-| name | slug | parent_id |
-|------|------|-----------|
-| Pickles | pickles | NULL |
-| Chutneys | chutneys | NULL |
-| Powders | powders | NULL |
-| Combo Packs | combo-packs | NULL |
-| Vegetarian Pickles | vegetarian-pickles | (pickles id) |
-| Non-Veg Pickles | non-veg-pickles | (pickles id) |
+**Sample Data (Must match frontend):**
+| name | slug | icon | parent_id |
+|------|------|------|-----------|
+| Pachadi | pachadi | rice_bowl | NULL |
+| Chutney | chutney | blender | NULL |
+| Powder | powder | grain | NULL |
+
+> **IMPORTANT:** These category slugs are used by the frontend for navigation. The `key` value in frontend matches the `slug` here.
 
 ---
 
@@ -346,12 +362,13 @@ CREATE INDEX idx_products_search ON products USING GIN (to_tsvector('english', n
 CREATE TABLE product_variants (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     product_id      UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-    name            VARCHAR(100) NOT NULL,
+    name            VARCHAR(100) NOT NULL,  -- 'Small', 'Medium', 'Large'
     sku             VARCHAR(50) NOT NULL UNIQUE,
-    size            VARCHAR(50),
-    spice_level     VARCHAR(20) CHECK (spice_level IN ('mild', 'medium', 'hot', 'extra_hot')),
+    weight          VARCHAR(50) NOT NULL,   -- '250g', '500g', '1kg'
+    size_code       VARCHAR(10) NOT NULL,   -- 'S', 'M', 'L' (for frontend icons)
     price           DECIMAL(10, 2) NOT NULL,
     mrp             DECIMAL(10, 2),
+    max_quantity    INTEGER NOT NULL DEFAULT 5,  -- Frontend enforces this limit
     stock           INTEGER DEFAULT 0,
     low_stock_alert INTEGER DEFAULT 10,
     is_active       BOOLEAN DEFAULT TRUE,
@@ -370,22 +387,35 @@ CREATE INDEX idx_variants_stock ON product_variants(stock) WHERE stock <= low_st
 |-------|------|-------------|
 | id | UUID | Primary key |
 | product_id | UUID | Reference to product |
-| name | VARCHAR(100) | Variant display name (e.g., "500g - Medium") |
+| name | VARCHAR(100) | Size display name: 'Small', 'Medium', 'Large' |
 | sku | VARCHAR(50) | Stock Keeping Unit |
-| size | VARCHAR(50) | Size (250g, 500g, 1kg) |
-| spice_level | VARCHAR(20) | Spice level option |
+| weight | VARCHAR(50) | Weight display: '250g', '500g', '1kg' |
+| size_code | VARCHAR(10) | Size code for frontend icons: 'S', 'M', 'L' |
 | price | DECIMAL | Selling price |
 | mrp | DECIMAL | Maximum retail price (for showing discounts) |
+| max_quantity | INTEGER | Maximum quantity per order (frontend enforces) |
 | stock | INTEGER | Current stock quantity |
 | low_stock_alert | INTEGER | Threshold for low stock notification |
 | is_active | BOOLEAN | Variant availability |
 
-**Sample Data:**
-| product_id | name | sku | size | spice_level | price | mrp | stock |
-|------------|------|-----|------|-------------|-------|-----|-------|
-| (gongura-classic) | 250g - Medium | GC-250-MED | 250g | medium | 199 | 249 | 100 |
-| (gongura-classic) | 500g - Medium | GC-500-MED | 500g | medium | 349 | 449 | 75 |
-| (gongura-classic) | 500g - Hot | GC-500-HOT | 500g | hot | 349 | 449 | 50 |
+**Sample Data (Must match frontend):**
+
+| product_slug | name | weight | size_code | price | max_quantity |
+|--------------|------|--------|-----------|-------|--------------|
+| traditional-gongura-pachadi | Small | 250g | S | 199 | 2 |
+| traditional-gongura-pachadi | Medium | 500g | M | 349 | 4 |
+| traditional-gongura-pachadi | Large | 1kg | L | 599 | 5 |
+| classic-gongura-chutney | Small | 250g | S | 149 | 2 |
+| classic-gongura-chutney | Medium | 500g | M | 279 | 4 |
+| classic-gongura-chutney | Large | 1kg | L | 499 | 5 |
+| spicy-gongura-podi | Small | 250g | S | 129 | 2 |
+| spicy-gongura-podi | Medium | 500g | M | 229 | 4 |
+| spicy-gongura-podi | Large | 1kg | L | 399 | 5 |
+
+> **IMPORTANT:** The `max_quantity` values must match the frontend implementation:
+> - Small (S): max 2
+> - Medium (M): max 4
+> - Large (L): max 5
 
 ---
 
@@ -765,30 +795,85 @@ CREATE TRIGGER set_order_number BEFORE INSERT ON orders
 
 ---
 
-## 5. Sample Seed Data
+## 5. Sample Seed Data (Frontend-Aligned)
 
 ```sql
--- Categories
+-- Categories (Must match frontend exactly)
 INSERT INTO categories (name, slug, description, sort_order) VALUES
-('Pickles', 'pickles', 'Traditional gongura pickles', 1),
-('Chutneys', 'chutneys', 'Fresh gongura chutneys', 2),
-('Powders', 'powders', 'Gongura spice powders', 3),
-('Combo Packs', 'combo-packs', 'Value combo packs', 4);
+('Pachadi', 'pachadi', 'Traditional gongura pachadis', 1),
+('Chutney', 'chutney', 'Fresh gongura chutneys', 2),
+('Powder', 'powder', 'Gongura spice powders (podi)', 3);
 
--- Sample Product
-INSERT INTO products (name, slug, description, short_desc, category_id, base_price, is_veg, ingredients, shelf_life, storage_info)
+-- Products (Must match frontend slugs)
+-- Product 1: Traditional Gongura Pachadi
+INSERT INTO products (name, slug, description, category_id, base_price, is_veg, ingredients, nutrition_info, shelf_life, is_featured)
 VALUES (
-    'Gongura Classic Pickle',
-    'gongura-classic-pickle',
-    'Our signature gongura pickle made with fresh gongura leaves, traditional spices, and pure cold-pressed oil. A perfect blend of tangy and spicy flavors that brings back the authentic taste of Andhra cuisine.',
-    'Traditional Andhra-style gongura pickle with authentic spices',
-    (SELECT id FROM categories WHERE slug = 'pickles'),
+    'Traditional Gongura Pachadi',
+    'traditional-gongura-pachadi',
+    'Authentic Andhra-style gongura pachadi made with fresh, hand-picked gongura leaves. This tangy and spicy pachadi is prepared using traditional recipes passed down through generations. Perfect accompaniment for hot rice and rotis.',
+    (SELECT id FROM categories WHERE slug = 'pachadi'),
     199.00,
     TRUE,
-    ARRAY['Gongura leaves', 'Red chilies', 'Garlic', 'Mustard seeds', 'Fenugreek seeds', 'Cold-pressed oil', 'Salt'],
+    ARRAY['Gongura Leaves', 'Red Chillies', 'Mustard Seeds', 'Fenugreek', 'Garlic', 'Salt', 'Groundnut Oil'],
+    '{"calories": "45 kcal", "protein": "1.2g", "carbs": "3.5g", "fat": "3.2g", "sodium": "380mg"}',
     '6 months',
-    'Store in a cool, dry place. Refrigerate after opening.'
+    TRUE
 );
+
+-- Product 2: Classic Gongura Chutney
+INSERT INTO products (name, slug, description, category_id, base_price, is_veg, ingredients, nutrition_info, shelf_life, is_featured)
+VALUES (
+    'Classic Gongura Chutney',
+    'classic-gongura-chutney',
+    'A delicious gongura chutney with the perfect blend of tangy and spicy flavors. Made fresh with tender gongura leaves, this chutney adds a burst of authentic South Indian taste to any meal. Ideal for dosas, idlis, and rice.',
+    (SELECT id FROM categories WHERE slug = 'chutney'),
+    149.00,
+    TRUE,
+    ARRAY['Gongura Leaves', 'Green Chillies', 'Tamarind', 'Cumin Seeds', 'Salt', 'Sesame Oil'],
+    '{"calories": "38 kcal", "protein": "0.9g", "carbs": "4.2g", "fat": "2.1g", "sodium": "290mg"}',
+    '4 months',
+    TRUE
+);
+
+-- Product 3: Spicy Gongura Podi
+INSERT INTO products (name, slug, description, category_id, base_price, is_veg, ingredients, nutrition_info, shelf_life, is_featured)
+VALUES (
+    'Spicy Gongura Podi',
+    'spicy-gongura-podi',
+    'A flavorful dry powder made from sun-dried gongura leaves and aromatic spices. This versatile podi can be mixed with rice and ghee, sprinkled on dosas, or used as a seasoning. A must-have for gongura lovers!',
+    (SELECT id FROM categories WHERE slug = 'powder'),
+    129.00,
+    TRUE,
+    ARRAY['Dried Gongura Leaves', 'Red Chillies', 'Cumin', 'Urad Dal', 'Chana Dal', 'Salt', 'Groundnut Oil'],
+    '{"calories": "52 kcal", "protein": "2.1g", "carbs": "5.8g", "fat": "2.8g", "sodium": "420mg"}',
+    '8 months',
+    TRUE
+);
+
+-- Product Variants (All 3 sizes for each product)
+-- Pachadi variants
+INSERT INTO product_variants (product_id, name, sku, weight, size_code, price, max_quantity, stock) VALUES
+((SELECT id FROM products WHERE slug = 'traditional-gongura-pachadi'), 'Small', 'TGP-S', '250g', 'S', 199.00, 2, 100),
+((SELECT id FROM products WHERE slug = 'traditional-gongura-pachadi'), 'Medium', 'TGP-M', '500g', 'M', 349.00, 4, 75),
+((SELECT id FROM products WHERE slug = 'traditional-gongura-pachadi'), 'Large', 'TGP-L', '1kg', 'L', 599.00, 5, 50);
+
+-- Chutney variants
+INSERT INTO product_variants (product_id, name, sku, weight, size_code, price, max_quantity, stock) VALUES
+((SELECT id FROM products WHERE slug = 'classic-gongura-chutney'), 'Small', 'CGC-S', '250g', 'S', 149.00, 2, 100),
+((SELECT id FROM products WHERE slug = 'classic-gongura-chutney'), 'Medium', 'CGC-M', '500g', 'M', 279.00, 4, 75),
+((SELECT id FROM products WHERE slug = 'classic-gongura-chutney'), 'Large', 'CGC-L', '1kg', 'L', 499.00, 5, 50);
+
+-- Podi variants
+INSERT INTO product_variants (product_id, name, sku, weight, size_code, price, max_quantity, stock) VALUES
+((SELECT id FROM products WHERE slug = 'spicy-gongura-podi'), 'Small', 'SGP-S', '250g', 'S', 129.00, 2, 100),
+((SELECT id FROM products WHERE slug = 'spicy-gongura-podi'), 'Medium', 'SGP-M', '500g', 'M', 229.00, 4, 75),
+((SELECT id FROM products WHERE slug = 'spicy-gongura-podi'), 'Large', 'SGP-L', '1kg', 'L', 399.00, 5, 50);
+
+-- Sample Coupons (Must match frontend)
+INSERT INTO coupons (code, description, discount_type, discount_value, min_order_value, valid_from, valid_until) VALUES
+('GONGURA20', '20% off on orders above Rs.500', 'percentage', 20.00, 500.00, NOW(), NOW() + INTERVAL '1 year'),
+('FIRST50', 'Rs.50 off on first order', 'fixed', 50.00, 0.00, NOW(), NOW() + INTERVAL '1 year'),
+('FREESHIP', 'Free delivery on orders above Rs.299', 'fixed', 49.00, 299.00, NOW(), NOW() + INTERVAL '1 year');
 ```
 
 ---

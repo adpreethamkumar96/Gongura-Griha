@@ -1,8 +1,56 @@
 # Gongura-Griha: API Specifications
 
 > **Document Status:** Sacred - Must be followed for all implementation decisions
-> **Version:** 1.0.0
-> **Last Updated:** December 2024
+> **Version:** 1.1.0
+> **Last Updated:** January 2026
+> **Status:** Phase 2 - Backend Implementation
+> **Frontend Reference:** [FRONTEND_IMPLEMENTATION.md](./FRONTEND_IMPLEMENTATION.md)
+
+---
+
+## Frontend Alignment Requirements
+
+All API responses must match the data structures expected by the frontend. Key requirements:
+
+### Product Response Structure
+```json
+{
+  "slug": "traditional-gongura-pachadi",  // Used for routing
+  "name": "Traditional Gongura Pachadi",   // Localization key maps to this
+  "category": "pachadi",                   // Category slug
+  "image": "assets/images/GonguraPickle.png",  // Or CDN URL
+  "isVeg": true,
+  "sizes": [
+    {
+      "name": "Small",
+      "weight": "250g",
+      "sizeCode": "S",      // For icon selection
+      "price": 199.0,
+      "maxQuantity": 2      // Frontend enforces this
+    }
+  ],
+  "highlights": [...],
+  "ingredients": [...],
+  "nutrition": {...}
+}
+```
+
+### Order Status Values (Must Match Frontend Timeline)
+| API Status | Frontend Display | Progress % |
+|------------|------------------|------------|
+| `processing` | Processing | 20% |
+| `confirmed` | Confirmed | 40% |
+| `shipped` | Shipped | 60% |
+| `out_for_delivery` | Out for Delivery | 80% |
+| `delivered` | Delivered | 100% |
+| `cancelled` | Cancelled | N/A |
+
+### Notification Types (Must Match Frontend Icons)
+| Type | Frontend Icon | Color |
+|------|---------------|-------|
+| `order` | local_shipping | Primary |
+| `promo` | local_offer | Accent |
+| `info` | info | Info |
 
 ---
 
@@ -500,24 +548,34 @@ avatar: <file>
         "categories": [
             {
                 "id": "uuid",
-                "name": "Pickles",
-                "slug": "pickles",
-                "description": "Traditional gongura pickles",
-                "imageUrl": "https://...",
-                "productCount": 15,
-                "subcategories": [
-                    {
-                        "id": "uuid",
-                        "name": "Vegetarian",
-                        "slug": "vegetarian-pickles",
-                        "productCount": 8
-                    }
-                ]
+                "name": "Pachadi",
+                "slug": "pachadi",
+                "description": "Traditional gongura pachadis",
+                "icon": "rice_bowl",
+                "productCount": 1
+            },
+            {
+                "id": "uuid",
+                "name": "Chutney",
+                "slug": "chutney",
+                "description": "Fresh gongura chutneys",
+                "icon": "blender",
+                "productCount": 1
+            },
+            {
+                "id": "uuid",
+                "name": "Powder",
+                "slug": "powder",
+                "description": "Gongura spice powders",
+                "icon": "grain",
+                "productCount": 1
             }
         ]
     }
 }
 ```
+
+> **Frontend Note:** Category slugs are used in product list navigation: `/products?category=pachadi`
 
 ---
 
@@ -594,71 +652,91 @@ avatar: <file>
 
 **Endpoint:** `GET /products/:slug`
 
+**Example:** `GET /products/traditional-gongura-pachadi`
+
 **Response (200):**
 ```json
 {
     "success": true,
     "data": {
         "id": "uuid",
-        "name": "Gongura Classic Pickle",
-        "slug": "gongura-classic-pickle",
-        "description": "Full product description...",
-        "shortDesc": "Traditional Andhra-style pickle",
-        "basePrice": 199.00,
+        "name": "Traditional Gongura Pachadi",
+        "slug": "traditional-gongura-pachadi",
+        "description": "Authentic Andhra-style gongura pachadi made with fresh, hand-picked gongura leaves. This tangy and spicy pachadi is prepared using traditional recipes passed down through generations. Perfect accompaniment for hot rice and rotis.",
+        "image": "https://cdn.gongura-griha.com/products/GonguraPickle.png",
         "images": [
-            "https://cdn.../main.jpg",
-            "https://cdn.../side1.jpg"
+            "https://cdn.gongura-griha.com/products/GonguraPickle.png"
         ],
         "isVeg": true,
-        "ingredients": [
-            "Gongura leaves",
-            "Red chilies",
-            "Garlic"
-        ],
-        "nutritionInfo": {
-            "servingSize": "30g",
-            "calories": 45,
-            "totalFat": "3.5g"
-        },
-        "shelfLife": "6 months",
-        "storageInfo": "Store in cool, dry place",
-        "fssaiLicense": "12345678901234",
-        "avgRating": 4.5,
-        "reviewCount": 120,
         "category": {
             "id": "uuid",
-            "name": "Pickles",
-            "slug": "pickles"
+            "name": "Pachadi",
+            "slug": "pachadi"
         },
-        "variants": [
+        "sizes": [
             {
                 "id": "uuid",
-                "name": "250g - Medium",
-                "sku": "GC-250-MED",
-                "size": "250g",
-                "spiceLevel": "medium",
+                "name": "Small",
+                "weight": "250g",
+                "sizeCode": "S",
                 "price": 199.00,
-                "mrp": 249.00,
-                "stock": 50,
+                "maxQuantity": 2,
                 "inStock": true
             },
             {
                 "id": "uuid",
-                "name": "500g - Hot",
-                "sku": "GC-500-HOT",
-                "size": "500g",
-                "spiceLevel": "hot",
+                "name": "Medium",
+                "weight": "500g",
+                "sizeCode": "M",
                 "price": 349.00,
-                "mrp": 449.00,
-                "stock": 25,
+                "maxQuantity": 4,
+                "inStock": true
+            },
+            {
+                "id": "uuid",
+                "name": "Large",
+                "weight": "1kg",
+                "sizeCode": "L",
+                "price": 599.00,
+                "maxQuantity": 5,
                 "inStock": true
             }
         ],
-        "relatedProducts": [...],
-        "frequentlyBoughtTogether": [...]
+        "highlights": [
+            "Made with 100% natural ingredients",
+            "No preservatives or artificial colors",
+            "Traditional Andhra recipe",
+            "Fresh gongura leaves from Andhra Pradesh",
+            "Shelf life: 6 months"
+        ],
+        "ingredients": [
+            {"name": "Gongura Leaves", "icon": "eco"},
+            {"name": "Red Chillies", "icon": "whatshot"},
+            {"name": "Mustard Seeds", "icon": "grain"},
+            {"name": "Fenugreek", "icon": "spa"},
+            {"name": "Garlic", "icon": "restaurant"},
+            {"name": "Salt", "icon": "opacity"},
+            {"name": "Groundnut Oil", "icon": "water_drop"}
+        ],
+        "nutrition": {
+            "servingSize": "30g",
+            "calories": "45 kcal",
+            "protein": "1.2g",
+            "carbs": "3.5g",
+            "fat": "3.2g",
+            "sodium": "380mg"
+        },
+        "shelfLife": "6 months",
+        "avgRating": 4.5,
+        "reviewCount": 120
     }
 }
 ```
+
+> **Frontend Notes:**
+> - `sizeCode` determines the icon: S=eco, M=nature, L=forest
+> - `maxQuantity` is enforced by frontend quantity selector
+> - `highlights` are displayed as bullet points with checkmark icons
 
 ---
 
