@@ -430,31 +430,33 @@ class _OrdersScreenState extends State<OrdersScreen>
   }
 
   Widget _buildProgressBar(int currentStage, List<String> orderStages) {
-    return Column(
-      children: [
-        // Progress dots and lines
-        Row(
-          children: List.generate(orderStages.length * 2 - 1, (index) {
-            if (index.isEven) {
-              // Dot
-              final stageIndex = index ~/ 2;
-              final isCompleted = stageIndex <= currentStage;
-              final isCurrent = stageIndex == currentStage;
+    return Row(
+      children: List.generate(orderStages.length * 2 - 1, (index) {
+        if (index.isEven) {
+          // Dot + Label column
+          final stageIndex = index ~/ 2;
+          final stage = orderStages[stageIndex];
+          final isCompleted = stageIndex <= currentStage;
+          final isCurrent = stageIndex == currentStage;
 
-              return Container(
-                width: isCurrent ? 28 : 20,
-                height: isCurrent ? 28 : 20,
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Dot
+              Container(
+                width: 24,
+                height: 24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: isCompleted ? AppColors.primary : AppColors.divider,
                   border: isCurrent
-                      ? Border.all(color: AppColors.primary.withAlpha(100), width: 3)
+                      ? Border.all(color: AppColors.primary.withAlpha(100), width: 2)
                       : null,
                   boxShadow: isCurrent
                       ? [
                           BoxShadow(
                             color: AppColors.primary.withAlpha(60),
-                            blurRadius: 8,
+                            blurRadius: 6,
                             spreadRadius: 1,
                           )
                         ]
@@ -463,43 +465,18 @@ class _OrdersScreenState extends State<OrdersScreen>
                 child: isCompleted
                     ? Icon(
                         stageIndex < currentStage ? Icons.check : Icons.eco,
-                        size: isCurrent ? 16 : 12,
+                        size: 14,
                         color: Colors.white,
                       )
                     : null,
-              );
-            } else {
-              // Line
-              final beforeStageIndex = index ~/ 2;
-              final isCompleted = beforeStageIndex < currentStage;
-
-              return Expanded(
-                child: Container(
-                  height: 3,
-                  decoration: BoxDecoration(
-                    color: isCompleted ? AppColors.primary : AppColors.divider,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              );
-            }
-          }),
-        ),
-        const SizedBox(height: 8),
-        // Stage labels
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: orderStages.asMap().entries.map((entry) {
-            final index = entry.key;
-            final stage = entry.value;
-            final isCompleted = index <= currentStage;
-            final isCurrent = index == currentStage;
-
-            return SizedBox(
-              width: 50,
-              child: Text(
+              ),
+              const SizedBox(height: 6),
+              // Label
+              Text(
                 stage,
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.labelSmall.copyWith(
                   fontSize: 9,
                   color: isCurrent
@@ -510,10 +487,27 @@ class _OrdersScreenState extends State<OrdersScreen>
                   fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
-            );
-          }).toList(),
-        ),
-      ],
+            ],
+          );
+        } else {
+          // Line
+          final beforeStageIndex = index ~/ 2;
+          final isCompleted = beforeStageIndex < currentStage;
+
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Container(
+                height: 3,
+                decoration: BoxDecoration(
+                  color: isCompleted ? AppColors.primary : AppColors.divider,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+          );
+        }
+      }),
     );
   }
 
