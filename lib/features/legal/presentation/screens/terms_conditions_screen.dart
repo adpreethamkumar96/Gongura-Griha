@@ -131,8 +131,8 @@ class TermsConditionsScreen extends StatelessWidget {
               '12. Contact Us',
               'If you have any questions about these Terms & Conditions, please contact us at:\n\n'
                   'Email: legal@gonguragriha.com\n'
-                  'Phone: +91 98765 43210\n'
-                  'Address: 123, Banjara Hills, Hyderabad - 500034',
+                  'Phone: +91 7995314630\n'
+                  'Address: Sierra - I - 701, Rajapushpa Atria, Kokapet, Hyderabad, Telangana - 500075',
             ),
 
             const SizedBox(height: 32),

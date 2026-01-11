@@ -184,8 +184,14 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                   Expanded(
                     child: CustomTextField(
                       controller: _buildingController,
-                      label: 'Building Name',
+                      label: 'Building Name *',
                       prefixIcon: Icons.apartment_outlined,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Required';
+                        }
+                        return null;
+                      },
                     ),
                   ),
                 ],
@@ -231,9 +237,9 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                 maxLength: 6,
                 suffix: _isLookingUpPincode
                     ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 1.5),
                       )
                     : null,
                 onChanged: (value) {

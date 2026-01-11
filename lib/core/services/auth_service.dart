@@ -211,9 +211,67 @@ class AuthService {
     _resendToken = null;
   }
 
-  /// Delete user account
+  /// Delete user account and all associated data
+  ///
+  /// This performs the following:
+  /// 1. Deletes all user data from Firestore (profile, addresses, orders, wishlist)
+  /// 2. Removes FCM token
+  /// 3. Clears local data (cart, wishlist)
+  /// 4. Deletes Firebase Auth account
+  ///
+  /// Throws an exception if deletion fails.
   Future<void> deleteAccount() async {
-    await _auth.currentUser?.delete();
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw AuthException(
+        code: 'not-authenticated',
+        message: 'No user logged in',
+      );
+    }
+
+    final userId = user.uid;
+
+    try {
+      // 1. Remove FCM token first
+      await pushNotificationService.removeTokenFromFirestore(userId);
+
+      // 2. Delete user data from Firestore
+      await userProfileService.deleteUserData(userId);
+
+      // 3. Delete addresses
+      await addressService.deleteAllUserAddresses(userId);
+
+      // 4. Clear local cart and wishlist
+      await cartRepository.clearCart();
+      await wishlistRepository.clearWishlist();
+
+      // 5. Clear analytics user ID
+      await analyticsService.setUserId(null);
+
+      // 6. Finally, delete Firebase Auth account
+      await user.delete();
+
+      // Clear verification state
+      _verificationId = null;
+      _resendToken = null;
+
+      debugPrint('Account deleted successfully for user: $userId');
+    } on FirebaseAuthException catch (e) {
+      debugPrint('Firebase Auth error during account deletion: ${e.code}');
+      if (e.code == 'requires-recent-login') {
+        throw AuthException(
+          code: 'requires-recent-login',
+          message: 'Please log out and log back in before deleting your account',
+        );
+      }
+      rethrow;
+    } catch (e) {
+      debugPrint('Error during account deletion: $e');
+      throw AuthException(
+        code: 'deletion-failed',
+        message: 'Failed to delete account. Please try again.',
+      );
+    }
   }
 
   /// Get resend token for re-sending OTP

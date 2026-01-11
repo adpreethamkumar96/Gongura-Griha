@@ -226,4 +226,26 @@ class AddressService {
       return 0;
     }
   }
+
+  /// Delete all addresses for a user (for account deletion)
+  Future<void> deleteAllUserAddresses(String userId) async {
+    try {
+      final snapshot = await _addressesCollection
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      if (snapshot.docs.isEmpty) return;
+
+      final batch = _firestore.batch();
+      for (final doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+
+      debugPrint('All addresses deleted for user: $userId');
+    } catch (e) {
+      debugPrint('Error deleting all user addresses: $e');
+      rethrow;
+    }
+  }
 }

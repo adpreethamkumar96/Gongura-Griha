@@ -173,8 +173,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
               '',
               'If you have any questions about this Privacy Policy, please contact us:\n\n'
                   'Email: privacy@gonguragriha.com\n'
-                  'Phone: +91 98765 43210\n'
-                  'Address: 123, Banjara Hills, Hyderabad - 500034\n\n'
+                  'Phone: +91 7995314630\n'
+                  'Address: Sierra - I - 701, Rajapushpa Atria, Kokapet, Hyderabad, Telangana - 500075\n\n'
                   'Data Protection Officer: dpo@gonguragriha.com',
             ),
 

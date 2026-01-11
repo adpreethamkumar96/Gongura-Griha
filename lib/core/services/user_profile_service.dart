@@ -165,4 +165,45 @@ class UserProfileService {
       return false;
     }
   }
+
+  /// Delete all user data (for account deletion)
+  ///
+  /// Deletes:
+  /// - User profile document
+  /// - Profile picture from storage
+  /// - All subcollections (wishlist, used coupons)
+  Future<void> deleteUserData(String uid) async {
+    try {
+      // Delete profile picture from storage
+      try {
+        final ref = _storage.ref().child('profile_pictures/$uid.jpg');
+        await ref.delete();
+      } catch (e) {
+        // File might not exist, continue
+        debugPrint('Profile picture not found during deletion: $e');
+      }
+
+      // Delete wishlist subcollection
+      final wishlistSnapshot =
+          await _getUserDoc(uid).collection('wishlist').get();
+      for (final doc in wishlistSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // Delete used coupons subcollection
+      final couponsSnapshot =
+          await _getUserDoc(uid).collection('usedCoupons').get();
+      for (final doc in couponsSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // Delete the user profile document
+      await _getUserDoc(uid).delete();
+
+      debugPrint('User data deleted for $uid');
+    } catch (e) {
+      debugPrint('Error deleting user data: $e');
+      rethrow;
+    }
+  }
 }

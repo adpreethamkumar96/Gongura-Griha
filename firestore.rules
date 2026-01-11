@@ -2,6 +2,18 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ============================================================
+    // GONGURA GRIHA - FIRESTORE SECURITY RULES
+    // Last Updated: January 2025
+    //
+    // PRODUCTION NOTES:
+    // 1. Products update rule allows any authenticated user to
+    //    modify inventory. For high-traffic production, consider
+    //    moving inventory updates to Cloud Functions.
+    // 2. All user data is scoped to the authenticated user's UID
+    // 3. Default deny rule at the bottom blocks any unmatched paths
+    // ============================================================
+
     // Helper function to check if user is authenticated
     function isAuthenticated() {
       return request.auth != null;

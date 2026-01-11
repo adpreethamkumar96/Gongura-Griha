@@ -1,0 +1,25 @@
+# Release signing configuration
+# Copy this file to key.properties and fill in your values
+# DO NOT commit key.properties to version control
+
+# Path to your keystore file (relative to android/app/)
+storeFile=../upload-keystore.jks
+
+# Keystore password
+storePassword=YOUR_KEYSTORE_PASSWORD
+
+# Key alias in the keystore
+keyAlias=upload
+
+# Key password
+keyPassword=YOUR_KEY_PASSWORD
+
+# ========================================
+# To generate a keystore, run:
+# keytool -genkey -v -keystore upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+#
+# IMPORTANT:
+# 1. Keep your keystore and passwords safe - you'll need them for all future app updates
+# 2. Back up your keystore file securely
+# 3. Never commit key.properties or your keystore to version control
+# ========================================

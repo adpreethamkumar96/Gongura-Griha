@@ -44,6 +44,13 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Android Release Signing (NEVER commit these)
+android/key.properties
+android/*.jks
+android/*.keystore
+android/app/*.jks
+android/app/*.keystore
+
 # Firebase Functions
 functions/node_modules/
 functions/.env

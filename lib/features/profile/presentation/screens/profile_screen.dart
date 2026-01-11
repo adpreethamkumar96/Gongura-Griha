@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
@@ -22,11 +23,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
   UserProfileModel? _profile;
   bool _isLoading = true;
   int _addressCount = 0;
+  String _appVersion = '';
+  String _buildNumber = '';
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
+    _loadAppVersion();
+  }
+
+  Future<void> _loadAppVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    if (mounted) {
+      setState(() {
+        _appVersion = packageInfo.version;
+        _buildNumber = packageInfo.buildNumber;
+      });
+    }
   }
 
   Future<void> _loadProfile() async {
@@ -234,15 +248,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 const SizedBox(height: 8),
 
-                // Logout Section
+                // Account Section
                 _buildSection(
+                  title: 'Account',
                   items: [
                     _MenuItem(
                       icon: Icons.logout,
                       title: l10n.logout,
+                      iconColor: AppColors.warning,
+                      titleColor: AppColors.warning,
+                      onTap: () => _showLogoutDialog(context, l10n),
+                    ),
+                    _MenuItem(
+                      icon: Icons.delete_forever,
+                      title: 'Delete Account',
+                      subtitle: 'Permanently delete your account and data',
                       iconColor: AppColors.error,
                       titleColor: AppColors.error,
-                      onTap: () => _showLogoutDialog(context, l10n),
+                      onTap: () => _showDeleteAccountDialog(context),
                     ),
                   ],
                 ),
@@ -250,11 +273,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 16),
 
                 // App Version
-                Text(
-                  '${l10n.version} 1.0.0',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textTertiary,
-                  ),
+                Column(
+                  children: [
+                    Text(
+                      _appVersion.isNotEmpty
+                          ? '${l10n.version} $_appVersion'
+                          : '${l10n.version} 1.0.0',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.textTertiary,
+                      ),
+                    ),
+                    if (_buildNumber.isNotEmpty)
+                      Text(
+                        'Build $_buildNumber',
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: AppColors.textTertiary,
+                          fontSize: 10,
+                        ),
+                      ),
+                  ],
                 ),
 
                 const SizedBox(height: 24),
@@ -353,6 +390,137 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: AppColors.error),
+            const SizedBox(width: 8),
+            const Text('Delete Account'),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to delete your account?',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            SizedBox(height: 12),
+            Text(
+              'This action is permanent and cannot be undone. All your data will be deleted:',
+            ),
+            SizedBox(height: 8),
+            Text('• Your profile information'),
+            Text('• Saved addresses'),
+            Text('• Order history'),
+            Text('• Wishlist items'),
+            Text('• Payment information'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              _confirmDeleteAccount(context);
+            },
+            child: Text(
+              'Delete Account',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteAccount(BuildContext context) {
+    // Show a second confirmation dialog
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Final Confirmation'),
+        content: const Text(
+          'Type "DELETE" to confirm account deletion.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await _deleteAccount(context);
+            },
+            child: Text(
+              'Delete Forever',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteAccount(BuildContext context) async {
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text('Deleting account...'),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      await authService.deleteAccount();
+
+      if (context.mounted) {
+        Navigator.pop(context); // Close loading dialog
+
+        // Show success and navigate to login
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account deleted successfully'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+
+        context.go(AppRoutes.login);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context); // Close loading dialog
+
+        String errorMessage = 'Failed to delete account. Please try again.';
+        if (e.toString().contains('requires-recent-login')) {
+          errorMessage = 'Please log out and log back in before deleting your account.';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 }
 
