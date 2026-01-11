@@ -1,8 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/data/models/cart_item_model.dart';
+import '../../../../core/data/models/product_inventory_model.dart';
+import '../../../../core/data/models/wishlist_item_model.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -23,7 +31,53 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _selectedSizeIndex = 0;
-  bool _isWishlisted = false;
+  late bool _isWishlisted;
+
+  // Real-time inventory data
+  ProductInventoryModel? _inventory;
+  StreamSubscription<ProductInventoryModel?>? _inventorySubscription;
+  StreamSubscription<BoxEvent>? _cartSubscription;
+  int _cartItemCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _isWishlisted = wishlistRepository.isInWishlist(widget.slug);
+    _setupInventoryListener();
+    _listenToCart();
+  }
+
+  @override
+  void dispose() {
+    _inventorySubscription?.cancel();
+    _cartSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _listenToCart() {
+    _cartItemCount = cartRepository.itemCount;
+    _cartSubscription = cartRepository.watch().listen((_) {
+      if (mounted) {
+        setState(() {
+          _cartItemCount = cartRepository.itemCount;
+        });
+      }
+    });
+  }
+
+  void _setupInventoryListener() {
+    // Get initial cached inventory
+    _inventory = inventoryService.getProductInventory(widget.slug);
+
+    // Listen for real-time updates
+    _inventorySubscription = inventoryService
+        .getProductInventoryStream(widget.slug)
+        .listen((inventory) {
+      if (mounted) {
+        setState(() => _inventory = inventory);
+      }
+    });
+  }
 
   // Separate quantity for each size: [S, M, L]
   final List<int> _quantities = [0, 0, 0];
@@ -31,9 +85,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   // Get current size's quantity
   int get _quantity => _quantities[_selectedSizeIndex];
 
-  // Max quantity limits based on size index
-  // Size 0 (S): max 2, Size 1 (M): max 4, Size 2 (L): max 5
+  // Get size code for current selection
+  String get _currentSizeCode {
+    switch (_selectedSizeIndex) {
+      case 0:
+        return 'S';
+      case 1:
+        return 'M';
+      case 2:
+        return 'L';
+      default:
+        return 'S';
+    }
+  }
+
+  // Get max quantity from real inventory (or fallback to default)
   int get _maxQuantity {
+    if (_inventory != null) {
+      return _inventory!.getMaxPerOrderForSize(_currentSizeCode);
+    }
+    // Fallback to defaults if no inventory data
     switch (_selectedSizeIndex) {
       case 0:
         return 2;
@@ -45,6 +116,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         return 2;
     }
   }
+
+  // Get current stock level
+  int get _currentStock {
+    if (_inventory != null) {
+      return _inventory!.getStockForSize(_currentSizeCode);
+    }
+    return 99; // Default to high stock if no data
+  }
+
+  // Check if current variant is in stock
+  bool get _isCurrentVariantInStock => _currentStock > 0;
 
   // Product data mapped by slug with localized strings
   Map<String, Map<String, dynamic>> _getProductsData(AppLocalizations l10n) => {
@@ -336,9 +418,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
         ),
         IconButton(
-          onPressed: () {
-            setState(() => _isWishlisted = !_isWishlisted);
-          },
+          onPressed: () => _toggleWishlist(context),
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -732,34 +812,167 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ],
       ),
       child: SafeArea(
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.price,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+            // Stock indicator
+            if (_inventory != null) ...[
+              _buildStockIndicator(),
+              const SizedBox(height: 12),
+            ],
+            Row(
+              children: [
+                // Price section with cart icon above
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Cart icon with badge (shown when items in cart)
+                      if (_cartItemCount > 0) ...[
+                        GestureDetector(
+                          onTap: () => context.push(AppRoutes.cart),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Badge(
+                                label: Text(
+                                  '$_cartItemCount',
+                                  style: const TextStyle(fontSize: 10),
+                                ),
+                                backgroundColor: AppColors.error,
+                                child: Icon(
+                                  Icons.shopping_cart_outlined,
+                                  size: 22,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'View Cart',
+                                style: AppTextStyles.labelSmall.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      Text(
+                        l10n.price,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      Text(
+                        Formatters.formatCurrency(currentPrice),
+                        style: AppTextStyles.headlineSmall.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    Formatters.formatCurrency(currentPrice),
-                    style: AppTextStyles.headlineSmall.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                if (!_isCurrentVariantInStock)
+                  _buildOutOfStockButton()
+                else if (_quantity == 0)
+                  _buildAddButton()
+                else
+                  _buildQuantitySelector(),
+              ],
             ),
-            _quantity == 0
-                ? _buildAddButton()
-                : _buildQuantitySelector(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildStockIndicator() {
+    final stock = _currentStock;
+    final Color indicatorColor;
+    final String stockText;
+    final IconData stockIcon;
+
+    if (stock == 0) {
+      indicatorColor = AppColors.error;
+      stockText = 'Out of Stock';
+      stockIcon = Icons.remove_shopping_cart;
+    } else if (stock <= 3) {
+      indicatorColor = AppColors.warning;
+      stockText = 'Only $stock left - Order soon!';
+      stockIcon = Icons.warning_amber_rounded;
+    } else if (stock <= 10) {
+      indicatorColor = AppColors.info;
+      stockText = '$stock in stock';
+      stockIcon = Icons.inventory_2_outlined;
+    } else {
+      indicatorColor = AppColors.success;
+      stockText = 'In Stock';
+      stockIcon = Icons.check_circle_outline;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: indicatorColor.withAlpha(20),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: indicatorColor.withAlpha(50)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(stockIcon, size: 18, color: indicatorColor),
+          const SizedBox(width: 8),
+          Text(
+            stockText,
+            style: AppTextStyles.labelMedium.copyWith(
+              color: indicatorColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (stock > 0 && stock <= 10) ...[
+            const Spacer(),
+            Text(
+              'Max: $_maxQuantity per order',
+              style: AppTextStyles.labelSmall.copyWith(
+                color: AppColors.textTertiary,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOutOfStockButton() {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 24,
+        vertical: 14,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.textTertiary,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.remove_shopping_cart,
+            size: 22,
+            color: Colors.white.withAlpha(180),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Out of Stock',
+            style: AppTextStyles.labelMedium.copyWith(
+              color: Colors.white.withAlpha(180),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -871,17 +1084,112 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   void _handleAddFirstItem() {
     setState(() => _quantities[_selectedSizeIndex] = 1);
+    _addToCart();
   }
 
   void _handleIncrement() {
     if (_quantity < _maxQuantity) {
       setState(() => _quantities[_selectedSizeIndex]++);
+      _updateCartQuantity();
     }
   }
 
   void _handleDecrement() {
     if (_quantity > 0) {
       setState(() => _quantities[_selectedSizeIndex]--);
+      if (_quantity == 0) {
+        _removeFromCart();
+      } else {
+        _updateCartQuantity();
+      }
     }
+  }
+
+  Future<void> _addToCart() async {
+    final l10n = AppLocalizations.of(context)!;
+    final product = _getProduct(l10n);
+    final sizes = product['sizes'] as List;
+    final selectedSize = sizes[_selectedSizeIndex] as Map<String, dynamic>;
+
+    final cartItem = CartItemModel(
+      productSlug: widget.slug,
+      productName: product['name'] as String,
+      productImage: (product['images'] as List).first as String,
+      sizeName: selectedSize['sizeLabel'] as String,
+      sizeCode: selectedSize['sizeLabel'] as String,
+      weight: selectedSize['weight'] as String,
+      price: selectedSize['price'] as double,
+      quantity: 1,
+      maxQuantity: _maxQuantity,
+      category: _getCategoryFromSlug(widget.slug),
+      isVeg: product['isVeg'] as bool? ?? true,
+    );
+
+    await cartRepository.addItem(cartItem);
+
+    // Track add to cart in analytics
+    analyticsService.logAddToCart(
+      itemId: widget.slug,
+      itemName: product['name'] as String,
+      category: _getCategoryFromSlug(widget.slug),
+      quantity: 1,
+      price: selectedSize['price'] as double,
+    );
+  }
+
+  Future<void> _updateCartQuantity() async {
+    final l10n = AppLocalizations.of(context)!;
+    final product = _getProduct(l10n);
+    final sizes = product['sizes'] as List;
+    final selectedSize = sizes[_selectedSizeIndex] as Map<String, dynamic>;
+    final sizeCode = selectedSize['sizeLabel'] as String;
+
+    await cartRepository.updateQuantity(widget.slug, sizeCode, _quantity);
+  }
+
+  Future<void> _removeFromCart() async {
+    final l10n = AppLocalizations.of(context)!;
+    final product = _getProduct(l10n);
+    final sizes = product['sizes'] as List;
+    final selectedSize = sizes[_selectedSizeIndex] as Map<String, dynamic>;
+    final sizeCode = selectedSize['sizeLabel'] as String;
+
+    await cartRepository.removeItem(widget.slug, sizeCode);
+  }
+
+  Future<void> _toggleWishlist(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final product = _getProduct(l10n);
+
+    final wishlistItem = WishlistItemModel(
+      productSlug: widget.slug,
+      productName: product['name'] as String,
+      productImage: (product['images'] as List).first as String,
+      basePrice: product['price'] as double,
+      category: _getCategoryFromSlug(widget.slug),
+      isVeg: product['isVeg'] as bool? ?? true,
+    );
+
+    final isNowInWishlist = await wishlistRepository.toggleItem(wishlistItem);
+    setState(() => _isWishlisted = isNowInWishlist);
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isNowInWishlist
+              ? '${product['name']} added to wishlist'
+              : '${product['name']} removed from wishlist',
+        ),
+        backgroundColor: AppColors.primary,
+      ),
+    );
+  }
+
+  String _getCategoryFromSlug(String slug) {
+    if (slug.contains('pachadi')) return 'Pachadi';
+    if (slug.contains('chutney')) return 'Chutney';
+    if (slug.contains('podi')) return 'Podi';
+    return 'Pickle';
   }
 }

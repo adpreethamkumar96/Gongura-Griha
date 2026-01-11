@@ -1,9 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_typography.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../shared/widgets/buttons/primary_button.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
@@ -45,19 +48,60 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    // TODO: Implement actual OTP sending logic
-    await Future<void>.delayed(const Duration(seconds: 2));
+    try {
+      await authService.sendOtp(
+        phoneNumber: _phoneController.text,
+        onCodeSent: (verificationId, resendToken) {
+          if (!mounted) return;
+          setState(() {
+            _isLoading = false;
+          });
+          // Navigate to OTP screen
+          context.push(
+            AppRoutes.otp,
+            extra: {
+              'phone': _phoneController.text,
+              'verificationId': verificationId,
+            },
+          );
+        },
+        onVerificationCompleted: (PhoneAuthCredential credential) async {
+          // Auto-verification on Android
+          try {
+            await authService.signInWithCredential(credential);
+            if (!mounted) return;
+            context.go(AppRoutes.home);
+          } catch (e) {
+            if (!mounted) return;
+            _showError('Auto-verification failed. Please enter OTP manually.');
+          }
+        },
+        onVerificationFailed: (FirebaseAuthException error) {
+          if (!mounted) return;
+          setState(() {
+            _isLoading = false;
+          });
+          _showError(error.message ?? 'Verification failed. Please try again.');
+        },
+        onCodeAutoRetrievalTimeout: (verificationId) {
+          // Timeout, user can still enter OTP manually
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      _showError('Failed to send OTP. Please try again.');
+    }
+  }
 
-    if (!mounted) return;
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    // Navigate to OTP screen
-    context.push(
-      AppRoutes.otp,
-      extra: {'phone': _phoneController.text},
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.error,
+      ),
     );
   }
 
@@ -124,12 +168,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
                 // Phone input with country code
+                Text(
+                  'Phone Number',
+                  style: AppTypography.labelMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Country code
                     Container(
-                      height: 56,
+                      height: 52,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.divider),
@@ -151,8 +202,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(width: 12),
                     // Phone number field
                     Expanded(
-                      child: PhoneTextField(
+                      child: AppTextField(
+                        hint: 'Enter 10-digit mobile number',
                         controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        maxLength: 10,
                         errorText: _phoneError,
                         onChanged: (value) {
                           if (_phoneError != null) {
@@ -161,6 +215,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             });
                           }
                         },
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(10),
+                        ],
                       ),
                     ),
                   ],

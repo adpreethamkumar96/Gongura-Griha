@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_typography.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../shared/widgets/buttons/primary_button.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
@@ -40,17 +41,53 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _isLoading = true;
     });
 
-    // TODO: Implement actual registration logic
-    await Future<void>.delayed(const Duration(seconds: 2));
+    try {
+      final user = authService.currentUser;
+      if (user == null) {
+        throw Exception('User not logged in');
+      }
 
-    if (!mounted) return;
+      final name = _nameController.text.trim();
+      final email = _emailController.text.trim();
 
-    setState(() {
-      _isLoading = false;
-    });
+      // Update display name in Firebase Auth
+      await authService.updateDisplayName(name);
 
-    // Navigate to home
-    context.go(AppRoutes.home);
+      // Optionally update email if provided
+      if (email.isNotEmpty) {
+        await authService.updateEmail(email);
+      }
+
+      // Save user profile to Firestore
+      await userProfileService.createProfileForNewUser(
+        uid: user.uid,
+        displayName: name,
+        email: email.isNotEmpty ? email : null,
+        phoneNumber: user.phoneNumber,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      // Navigate to home
+      context.go(AppRoutes.home);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Registration failed: ${e.toString()}'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   @override

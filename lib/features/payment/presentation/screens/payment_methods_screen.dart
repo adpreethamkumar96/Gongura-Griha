@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/data/models/saved_payment_model.dart';
+import '../../../../core/di/injection.dart';
 
 /// Payment Methods Screen
 ///
-/// Displays and manages saved payment methods.
+/// Displays and manages saved payment methods from Firestore.
 class PaymentMethodsScreen extends StatefulWidget {
   const PaymentMethodsScreen({super.key});
 
@@ -14,90 +16,77 @@ class PaymentMethodsScreen extends StatefulWidget {
 }
 
 class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
-  // Mock saved payment methods
-  final List<Map<String, dynamic>> _savedCards = [
-    {
-      'id': '1',
-      'type': 'visa',
-      'lastFour': '4242',
-      'expiryMonth': '12',
-      'expiryYear': '26',
-      'holderName': 'Ramesh Kumar',
-      'isDefault': true,
-    },
-    {
-      'id': '2',
-      'type': 'mastercard',
-      'lastFour': '8888',
-      'expiryMonth': '08',
-      'expiryYear': '25',
-      'holderName': 'Ramesh Kumar',
-      'isDefault': false,
-    },
-  ];
-
-  final List<Map<String, dynamic>> _savedUpi = [
-    {
-      'id': '1',
-      'upiId': 'ramesh@okicici',
-      'isDefault': true,
-    },
-    {
-      'id': '2',
-      'upiId': 'ramesh.kumar@paytm',
-      'isDefault': false,
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final user = authService.currentUser;
+    if (user == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(title: const Text('Payment Methods')),
+        body: const Center(child: Text('Please log in to view payment methods')),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Payment Methods'),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
+      body: StreamBuilder<List<SavedPaymentModel>>(
+        stream: savedPaymentService.getSavedPaymentsStream(user.uid),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            // UPI Section
-            _buildSectionHeader('UPI', onAdd: _showAddUpiDialog),
-            if (_savedUpi.isEmpty)
-              _buildEmptyCard('No UPI IDs saved')
-            else
-              ..._savedUpi.map((upi) => _buildUpiCard(upi)),
+          final payments = snapshot.data ?? [];
+          final cards = payments.where((p) => p.type == SavedPaymentType.card).toList();
+          final upis = payments.where((p) => p.type == SavedPaymentType.upi).toList();
 
-            const SizedBox(height: 24),
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
 
-            // Cards Section
-            _buildSectionHeader('Cards', onAdd: _showAddCardDialog),
-            if (_savedCards.isEmpty)
-              _buildEmptyCard('No cards saved')
-            else
-              ..._savedCards.map((card) => _buildCardItem(card)),
+                // UPI Section
+                _buildSectionHeader('UPI', onAdd: _showAddUpiDialog),
+                if (upis.isEmpty)
+                  _buildEmptyCard('No UPI IDs saved')
+                else
+                  ...upis.map((upi) => _buildUpiCard(upi)),
 
-            const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-            // Other Payment Options
-            _buildSectionHeader('Other Options'),
-            _buildPaymentOption(
-              icon: Icons.money,
-              title: 'Cash on Delivery',
-              subtitle: 'Pay when you receive your order',
-              color: AppColors.cod,
+                // Cards Section
+                _buildSectionHeader('Cards', onAdd: _showAddCardDialog),
+                if (cards.isEmpty)
+                  _buildEmptyCard('No cards saved')
+                else
+                  ...cards.map((card) => _buildCardItem(card)),
+
+                const SizedBox(height: 24),
+
+                // Other Payment Options
+                _buildSectionHeader('Other Options'),
+                _buildPaymentOption(
+                  icon: Icons.money,
+                  title: 'Cash on Delivery',
+                  subtitle: 'Pay when you receive your order',
+                  color: AppColors.cod,
+                ),
+                _buildPaymentOption(
+                  icon: Icons.account_balance,
+                  title: 'Net Banking',
+                  subtitle: 'Pay using your bank account',
+                  color: AppColors.info,
+                ),
+
+                const SizedBox(height: 32),
+              ],
             ),
-            _buildPaymentOption(
-              icon: Icons.account_balance,
-              title: 'Net Banking',
-              subtitle: 'Pay using your bank account',
-              color: AppColors.info,
-            ),
-
-            const SizedBox(height: 32),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -143,15 +132,13 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     );
   }
 
-  Widget _buildUpiCard(Map<String, dynamic> upi) {
-    final isDefault = upi['isDefault'] as bool;
-
+  Widget _buildUpiCard(SavedPaymentModel upi) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: isDefault
+        border: upi.isDefault
             ? Border.all(color: AppColors.primary, width: 2)
             : Border.all(color: AppColors.divider),
       ),
@@ -168,10 +155,10 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           ),
         ),
         title: Text(
-          upi['upiId'] as String,
+          upi.displayName,
           style: AppTextStyles.bodyMedium,
         ),
-        subtitle: isDefault
+        subtitle: upi.isDefault
             ? Text(
                 'Default',
                 style: AppTextStyles.labelSmall.copyWith(
@@ -182,7 +169,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
         trailing: PopupMenuButton<String>(
           onSelected: (value) => _handleUpiAction(value, upi),
           itemBuilder: (context) => [
-            if (!isDefault)
+            if (!upi.isDefault)
               const PopupMenuItem(
                 value: 'default',
                 child: Text('Set as Default'),
@@ -197,16 +184,13 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     );
   }
 
-  Widget _buildCardItem(Map<String, dynamic> card) {
-    final isDefault = card['isDefault'] as bool;
-    final cardType = card['type'] as String;
-
+  Widget _buildCardItem(SavedPaymentModel card) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: isDefault
+        border: card.isDefault
             ? Border.all(color: AppColors.primary, width: 2)
             : Border.all(color: AppColors.divider),
       ),
@@ -218,36 +202,26 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
-            _getCardIcon(cardType),
+            Icons.credit_card,
             color: AppColors.card,
           ),
         ),
         title: Text(
-          '${_getCardName(cardType)} •••• ${card['lastFour']}',
+          card.displayName,
           style: AppTextStyles.bodyMedium,
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Expires ${card['expiryMonth']}/${card['expiryYear']}',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            if (isDefault)
-              Text(
+        subtitle: card.isDefault
+            ? Text(
                 'Default',
                 style: AppTextStyles.labelSmall.copyWith(
                   color: AppColors.primary,
                 ),
-              ),
-          ],
-        ),
+              )
+            : null,
         trailing: PopupMenuButton<String>(
           onSelected: (value) => _handleCardAction(value, card),
           itemBuilder: (context) => [
-            if (!isDefault)
+            if (!card.isDefault)
               const PopupMenuItem(
                 value: 'default',
                 child: Text('Set as Default'),
@@ -258,7 +232,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             ),
           ],
         ),
-        isThreeLine: isDefault,
       ),
     );
   }
@@ -300,78 +273,60 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     );
   }
 
-  IconData _getCardIcon(String type) {
-    switch (type.toLowerCase()) {
-      case 'visa':
-        return Icons.credit_card;
-      case 'mastercard':
-        return Icons.credit_card;
-      case 'amex':
-        return Icons.credit_card;
-      default:
-        return Icons.credit_card;
-    }
-  }
+  Future<void> _handleUpiAction(String action, SavedPaymentModel upi) async {
+    final user = authService.currentUser;
+    if (user == null) return;
 
-  String _getCardName(String type) {
-    switch (type.toLowerCase()) {
-      case 'visa':
-        return 'Visa';
-      case 'mastercard':
-        return 'Mastercard';
-      case 'amex':
-        return 'Amex';
-      default:
-        return 'Card';
-    }
-  }
-
-  void _handleUpiAction(String action, Map<String, dynamic> upi) {
     switch (action) {
       case 'default':
-        setState(() {
-          for (var u in _savedUpi) {
-            u['isDefault'] = u['id'] == upi['id'];
-          }
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Default UPI updated')),
-        );
+        final success = await savedPaymentService.setDefaultPayment(user.uid, upi.id);
+        if (mounted && success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Default UPI updated')),
+          );
+        }
         break;
       case 'delete':
         _showDeleteConfirmation(
           'Remove UPI',
           'Are you sure you want to remove this UPI ID?',
-          () {
-            setState(() {
-              _savedUpi.removeWhere((u) => u['id'] == upi['id']);
-            });
+          () async {
+            final success = await savedPaymentService.deletePayment(user.uid, upi.id);
+            if (mounted && success) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('UPI removed successfully')),
+              );
+            }
           },
         );
         break;
     }
   }
 
-  void _handleCardAction(String action, Map<String, dynamic> card) {
+  Future<void> _handleCardAction(String action, SavedPaymentModel card) async {
+    final user = authService.currentUser;
+    if (user == null) return;
+
     switch (action) {
       case 'default':
-        setState(() {
-          for (var c in _savedCards) {
-            c['isDefault'] = c['id'] == card['id'];
-          }
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Default card updated')),
-        );
+        final success = await savedPaymentService.setDefaultPayment(user.uid, card.id);
+        if (mounted && success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Default card updated')),
+          );
+        }
         break;
       case 'delete':
         _showDeleteConfirmation(
           'Remove Card',
           'Are you sure you want to remove this card?',
-          () {
-            setState(() {
-              _savedCards.removeWhere((c) => c['id'] == card['id']);
-            });
+          () async {
+            final success = await savedPaymentService.deletePayment(user.uid, card.id);
+            if (mounted && success) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Card removed successfully')),
+              );
+            }
           },
         );
         break;
@@ -394,9 +349,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             onPressed: () {
               Navigator.pop(context);
               onConfirm();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Removed successfully')),
-              );
             },
             child: Text(
               'Remove',
@@ -410,9 +362,12 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
 
   void _showAddUpiDialog() {
     final controller = TextEditingController();
+    final user = authService.currentUser;
+    if (user == null) return;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Add UPI ID'),
         content: TextField(
           controller: controller,
@@ -425,23 +380,28 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (controller.text.isNotEmpty) {
-                setState(() {
-                  _savedUpi.add({
-                    'id': DateTime.now().millisecondsSinceEpoch.toString(),
-                    'upiId': controller.text,
-                    'isDefault': _savedUpi.isEmpty,
-                  });
-                });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('UPI ID added')),
+                Navigator.pop(dialogContext);
+
+                final result = await savedPaymentService.saveUpi(
+                  userId: user.uid,
+                  upiId: controller.text.trim(),
                 );
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(result != null
+                          ? 'UPI ID added'
+                          : 'Failed to add UPI ID'),
+                    ),
+                  );
+                }
               }
             },
             child: const Text('Add'),
@@ -466,7 +426,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Card details will be securely collected through Razorpay during checkout.',
+              'Card details will be securely collected through Razorpay during checkout. Your card will be saved for future purchases.',
               style: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.textSecondary,
               ),

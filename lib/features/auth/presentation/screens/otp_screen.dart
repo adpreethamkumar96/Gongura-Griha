@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pinput/pinput.dart';
@@ -7,6 +8,7 @@ import 'package:pinput/pinput.dart';
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_typography.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../shared/widgets/buttons/primary_button.dart';
 
 /// OTP Verification Screen
@@ -14,10 +16,12 @@ import '../../../../shared/widgets/buttons/primary_button.dart';
 /// Screen for entering OTP sent to phone number.
 class OtpScreen extends StatefulWidget {
   final String? phoneNumber;
+  final String? verificationId;
 
   const OtpScreen({
     super.key,
     this.phoneNumber,
+    this.verificationId,
   });
 
   @override
@@ -79,40 +83,90 @@ class _OtpScreenState extends State<OtpScreen> {
       _errorText = null;
     });
 
-    // TODO: Implement actual OTP verification
-    await Future<void>.delayed(const Duration(seconds: 2));
+    try {
+      final userCredential = await authService.verifyOtp(
+        otp: _otpController.text,
+        verificationId: widget.verificationId,
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    // For demo, any 6-digit OTP works
-    // In production, verify with backend
-    final isNewUser = true; // TODO: Get from API response
+      setState(() {
+        _isLoading = false;
+      });
 
-    setState(() {
-      _isLoading = false;
-    });
+      // Check if this is a new user (no display name set)
+      final isNewUser = userCredential.user?.displayName == null ||
+          userCredential.user!.displayName!.isEmpty;
 
-    if (isNewUser) {
-      context.go(AppRoutes.register);
-    } else {
-      context.go(AppRoutes.home);
+      if (isNewUser) {
+        context.go(AppRoutes.register);
+      } else {
+        context.go(AppRoutes.home);
+      }
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorText = e.message ?? 'Invalid OTP. Please try again.';
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorText = 'Verification failed. Please try again.';
+      });
     }
   }
 
   Future<void> _resendOtp() async {
-    if (_resendSeconds > 0) return;
+    if (_resendSeconds > 0 || widget.phoneNumber == null) return;
 
-    // TODO: Implement actual resend OTP logic
-    _startResendTimer();
-
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('OTP sent successfully!'),
-        backgroundColor: AppColors.success,
-      ),
-    );
+    try {
+      await authService.resendOtp(
+        phoneNumber: widget.phoneNumber!,
+        onCodeSent: (verificationId, resendToken) {
+          if (!mounted) return;
+          _startResendTimer();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('OTP sent successfully!'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        },
+        onVerificationCompleted: (PhoneAuthCredential credential) async {
+          // Auto-verification
+          try {
+            await authService.signInWithCredential(credential);
+            if (!mounted) return;
+            context.go(AppRoutes.home);
+          } catch (e) {
+            // User can enter OTP manually
+          }
+        },
+        onVerificationFailed: (FirebaseAuthException error) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error.message ?? 'Failed to resend OTP'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        },
+        onCodeAutoRetrievalTimeout: (verificationId) {
+          // Timeout
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to resend OTP. Please try again.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   @override

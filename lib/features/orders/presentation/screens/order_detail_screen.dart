@@ -1,16 +1,20 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/data/models/order_model.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// Order Detail Screen
 ///
 /// Displays detailed information about a specific order with tracking.
-class OrderDetailScreen extends StatelessWidget {
+class OrderDetailScreen extends StatefulWidget {
   final String orderNumber;
 
   const OrderDetailScreen({
@@ -18,163 +22,72 @@ class OrderDetailScreen extends StatelessWidget {
     required this.orderNumber,
   });
 
-  // Get order data based on order number
-  Map<String, dynamic>? _getOrderData(AppLocalizations l10n) {
-    final allOrders = _getAllOrders(l10n);
-    try {
-      return allOrders.firstWhere((o) => o['orderNumber'] == orderNumber);
-    } catch (_) {
-      return null;
+  @override
+  State<OrderDetailScreen> createState() => _OrderDetailScreenState();
+}
+
+class _OrderDetailScreenState extends State<OrderDetailScreen> {
+  OrderModel? _order;
+  bool _isLoading = true;
+  StreamSubscription? _orderSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOrder();
+  }
+
+  @override
+  void dispose() {
+    _orderSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadOrder() async {
+    final userId = authService.currentUser?.uid;
+    if (userId == null) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
+
+    final order = await orderService.getOrderByNumber(widget.orderNumber, userId: userId);
+    if (order != null && mounted) {
+      setState(() {
+        _order = order;
+        _isLoading = false;
+      });
+
+      // Subscribe to real-time updates
+      _orderSubscription =
+          orderService.getOrderStream(order.id).listen((updatedOrder) {
+        if (mounted && updatedOrder != null) {
+          setState(() => _order = updatedOrder);
+        }
+      });
+    } else if (mounted) {
+      setState(() => _isLoading = false);
     }
   }
 
-  // All orders data matching orders_screen.dart
-  List<Map<String, dynamic>> _getAllOrders(AppLocalizations l10n) => [
-    {
-      'orderNumber': 'GG78945612',
-      'date': DateTime.now().subtract(const Duration(hours: 2)),
-      'status': 'processing',
-      'statusText': l10n.statusOrderConfirmed,
-      'currentStage': 1,
-      'items': [
-        {
-          'name': l10n.traditionalGonguraPachadi,
-          'quantity': 2,
-          'size': '500g',
-          'price': 349.0,
-          'image': 'assets/images/GonguraPickle.png',
-        },
-        {
-          'name': l10n.spicyGonguraPodi,
-          'quantity': 1,
-          'size': '250g',
-          'price': 179.0,
-          'image': 'assets/images/GonguraPowder.png',
-        },
-      ],
-      'subtotal': 877.0,
-      'discount': 50.0,
-      'deliveryCharge': 0.0,
-      'total': 827.0,
-      'estimatedDelivery': l10n.tomorrowDelivery,
-      'address': {
-        'name': 'Ramesh Kumar',
-        'phone': '+91 98765 43210',
-        'address': '123, Green Valley Apartments, Near City Mall',
-        'city': 'Hyderabad - 500001',
-      },
-      'payment': {
-        'method': 'UPI',
-        'status': l10n.paid,
-        'transactionId': 'TXN123456789',
-      },
-    },
-    {
-      'orderNumber': 'GG78912345',
-      'date': DateTime.now().subtract(const Duration(days: 3)),
-      'status': 'shipped',
-      'statusText': l10n.statusOutForDelivery,
-      'currentStage': 3,
-      'items': [
-        {
-          'name': l10n.classicGonguraChutney,
-          'quantity': 2,
-          'size': '250g',
-          'price': 199.0,
-          'image': 'assets/images/GonguraChutney.png',
-        },
-      ],
-      'subtotal': 398.0,
-      'discount': 0.0,
-      'deliveryCharge': 0.0,
-      'total': 398.0,
-      'estimatedDelivery': l10n.todayDelivery,
-      'address': {
-        'name': 'Ramesh Kumar',
-        'phone': '+91 98765 43210',
-        'address': '123, Green Valley Apartments, Near City Mall',
-        'city': 'Hyderabad - 500001',
-      },
-      'payment': {
-        'method': 'UPI',
-        'status': l10n.paid,
-        'transactionId': 'TXN987654321',
-      },
-    },
-    {
-      'orderNumber': 'GG78901234',
-      'date': DateTime.now().subtract(const Duration(days: 7)),
-      'status': 'delivered',
-      'statusText': l10n.orderDelivered,
-      'currentStage': 4,
-      'items': [
-        {
-          'name': l10n.traditionalGonguraPachadi,
-          'quantity': 1,
-          'size': '1kg',
-          'price': 599.0,
-          'image': 'assets/images/GonguraPickle.png',
-        },
-        {
-          'name': l10n.spicyGonguraPodi,
-          'quantity': 1,
-          'size': '500g',
-          'price': 299.0,
-          'image': 'assets/images/GonguraPowder.png',
-        },
-      ],
-      'subtotal': 898.0,
-      'discount': 100.0,
-      'deliveryCharge': 0.0,
-      'total': 798.0,
-      'deliveredOn': DateTime.now().subtract(const Duration(days: 5)),
-      'address': {
-        'name': 'Ramesh Kumar',
-        'phone': '+91 98765 43210',
-        'address': '123, Green Valley Apartments, Near City Mall',
-        'city': 'Hyderabad - 500001',
-      },
-      'payment': {
-        'method': 'COD',
-        'status': l10n.paid,
-        'transactionId': 'COD-78901234',
-      },
-    },
-    {
-      'orderNumber': 'GG78891234',
-      'date': DateTime.now().subtract(const Duration(days: 30)),
-      'status': 'delivered',
-      'statusText': l10n.orderDelivered,
-      'currentStage': 4,
-      'items': [
-        {
-          'name': l10n.classicGonguraChutney,
-          'quantity': 2,
-          'size': '250g',
-          'price': 199.0,
-          'image': 'assets/images/GonguraChutney.png',
-        },
-      ],
-      'subtotal': 398.0,
-      'discount': 0.0,
-      'deliveryCharge': 40.0,
-      'total': 438.0,
-      'deliveredOn': DateTime.now().subtract(const Duration(days: 27)),
-      'address': {
-        'name': 'Ramesh Kumar',
-        'phone': '+91 98765 43210',
-        'address': '456, Sunshine Colony, Madhapur',
-        'city': 'Hyderabad - 500081',
-      },
-      'payment': {
-        'method': 'UPI',
-        'status': l10n.paid,
-        'transactionId': 'TXN456789012',
-      },
-    },
-  ];
+  int _getOrderStage(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return 0;
+      case OrderStatus.confirmed:
+        return 1;
+      case OrderStatus.processing:
+        return 2;
+      case OrderStatus.shipped:
+      case OrderStatus.outForDelivery:
+        return 3;
+      case OrderStatus.delivered:
+        return 4;
+      case OrderStatus.cancelled:
+      case OrderStatus.refunded:
+        return -1;
+    }
+  }
 
-  // Generate tracking data based on current stage
   List<Map<String, dynamic>> _getTrackingData(
     AppLocalizations l10n,
     int currentStage,
@@ -195,7 +108,6 @@ class OrderDetailScreen extends StatelessWidget {
         if (index == 4 && deliveredOn != null) {
           time = deliveredOn;
         } else if (index <= currentStage) {
-          // Calculate approximate times based on order date
           switch (index) {
             case 0:
               time = orderDate;
@@ -227,30 +139,47 @@ class OrderDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final order = _getOrderData(l10n);
 
-    if (order == null) {
+    if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: Text('${l10n.orders} #$orderNumber')),
+        appBar: AppBar(title: Text('${l10n.orders} #${widget.orderNumber}')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_order == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text('${l10n.orders} #${widget.orderNumber}')),
         body: Center(
-          child: Text(l10n.noResults),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.receipt_long, size: 64, color: AppColors.textTertiary),
+              const SizedBox(height: 16),
+              Text(l10n.noResults, style: AppTextStyles.titleMedium),
+              const SizedBox(height: 8),
+              Text('Order not found', style: AppTextStyles.bodyMedium),
+            ],
+          ),
         ),
       );
     }
 
-    final currentStage = order['currentStage'] as int;
-    final isDelivered = order['status'] == 'delivered';
+    final order = _order!;
+    final currentStage = _getOrderStage(order.status);
+    final isDelivered = order.status == OrderStatus.delivered;
+    final isCancelled = order.status == OrderStatus.cancelled;
     final tracking = _getTrackingData(
       l10n,
       currentStage,
-      order['date'] as DateTime,
-      order['deliveredOn'] as DateTime?,
+      order.createdAt,
+      order.deliveredAt,
     );
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('${l10n.orders} #$orderNumber'),
+        title: Text('${l10n.orders} #${order.orderNumber}'),
         actions: [
           IconButton(
             onPressed: () {},
@@ -263,12 +192,16 @@ class OrderDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Status Card
-            _buildStatusCard(context, order, l10n, isDelivered),
+            _buildStatusCard(context, order, l10n, isDelivered, isCancelled),
 
             const SizedBox(height: 8),
 
-            // Tracking Timeline
-            _buildTrackingSection(context, tracking, l10n),
+            // Cancelled message
+            if (isCancelled) _buildCancelledSection(order, l10n),
+
+            // Tracking Timeline (only for non-cancelled orders)
+            if (!isCancelled && currentStage >= 0)
+              _buildTrackingSection(context, tracking, l10n),
 
             const SizedBox(height: 8),
 
@@ -293,7 +226,7 @@ class OrderDetailScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Help Section
-            if (!isDelivered) _buildHelpSection(context, l10n),
+            if (!isDelivered && !isCancelled) _buildHelpSection(context, order, l10n),
 
             const SizedBox(height: 24),
           ],
@@ -304,33 +237,56 @@ class OrderDetailScreen extends StatelessWidget {
 
   Widget _buildStatusCard(
     BuildContext context,
-    Map<String, dynamic> order,
+    OrderModel order,
     AppLocalizations l10n,
     bool isDelivered,
+    bool isCancelled,
   ) {
-    final statusText = order['statusText'] as String;
-    final status = order['status'] as String;
-
-    // Determine icon and color based on status
     IconData statusIcon;
     Color statusColor;
+    String statusText;
 
-    switch (status) {
-      case 'processing':
+    switch (order.status) {
+      case OrderStatus.pending:
+        statusIcon = Icons.hourglass_empty;
+        statusColor = AppColors.warning;
+        statusText = 'Pending';
+        break;
+      case OrderStatus.confirmed:
+        statusIcon = Icons.check_circle_outline;
+        statusColor = AppColors.info;
+        statusText = l10n.statusOrderConfirmed;
+        break;
+      case OrderStatus.processing:
         statusIcon = Icons.inventory_2_outlined;
         statusColor = AppColors.accent;
+        statusText = 'Processing';
         break;
-      case 'shipped':
+      case OrderStatus.shipped:
         statusIcon = Icons.local_shipping;
         statusColor = AppColors.info;
+        statusText = 'Shipped';
         break;
-      case 'delivered':
+      case OrderStatus.outForDelivery:
+        statusIcon = Icons.delivery_dining;
+        statusColor = AppColors.info;
+        statusText = l10n.statusOutForDelivery;
+        break;
+      case OrderStatus.delivered:
         statusIcon = Icons.check_circle;
         statusColor = AppColors.success;
+        statusText = l10n.orderDelivered;
         break;
-      default:
-        statusIcon = Icons.receipt_long;
-        statusColor = AppColors.primary;
+      case OrderStatus.cancelled:
+        statusIcon = Icons.cancel;
+        statusColor = AppColors.error;
+        statusText = 'Cancelled';
+        break;
+      case OrderStatus.refunded:
+        statusIcon = Icons.money_off;
+        statusColor = AppColors.textSecondary;
+        statusText = 'Refunded';
+        break;
     }
 
     return Container(
@@ -363,9 +319,11 @@ class OrderDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  isDelivered
-                      ? '${l10n.deliveredOn} ${Formatters.formatDate(order['deliveredOn'] as DateTime)}'
-                      : '${l10n.expectedBy} ${order['estimatedDelivery']}',
+                  isDelivered && order.deliveredAt != null
+                      ? '${l10n.deliveredOn} ${Formatters.formatDate(order.deliveredAt!)}'
+                      : isCancelled
+                          ? 'Cancelled on ${Formatters.formatDate(order.updatedAt ?? order.createdAt)}'
+                          : '${l10n.expectedBy} Tomorrow, 10 AM - 2 PM',
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -374,6 +332,35 @@ class OrderDetailScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCancelledSection(OrderModel order, AppLocalizations l10n) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+      padding: const EdgeInsets.all(16),
+      color: AppColors.surface,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.error.withAlpha(20),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.info_outline, color: AppColors.error),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                order.cancellationReason ?? 'This order has been cancelled.',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.error,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -471,11 +458,9 @@ class OrderDetailScreen extends StatelessWidget {
 
   Widget _buildItemsSection(
     BuildContext context,
-    Map<String, dynamic> order,
+    OrderModel order,
     AppLocalizations l10n,
   ) {
-    final items = order['items'] as List;
-
     return Container(
       padding: const EdgeInsets.all(16),
       color: AppColors.surface,
@@ -485,7 +470,8 @@ class OrderDetailScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('${l10n.items} (${items.length})', style: AppTextStyles.titleSmall),
+              Text('${l10n.items} (${order.items.length})',
+                  style: AppTextStyles.titleSmall),
               TextButton(
                 onPressed: () {},
                 child: Text(l10n.viewInvoice),
@@ -493,7 +479,7 @@ class OrderDetailScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          ...items.map((item) => Padding(
+          ...order.items.map((item) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Row(
                   children: [
@@ -503,14 +489,19 @@ class OrderDetailScreen extends StatelessWidget {
                         width: 60,
                         height: 60,
                         color: AppColors.primary.withAlpha(20),
-                        child: Image.asset(
-                          item['image'] as String,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Icon(
-                            Icons.eco,
-                            color: AppColors.primary.withAlpha(100),
-                          ),
-                        ),
+                        child: item.productImage.startsWith('assets/')
+                            ? Image.asset(
+                                item.productImage,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Icon(
+                                  Icons.eco,
+                                  color: AppColors.primary.withAlpha(100),
+                                ),
+                              )
+                            : Icon(
+                                Icons.eco,
+                                color: AppColors.primary.withAlpha(100),
+                              ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -519,11 +510,11 @@ class OrderDetailScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            item['name'] as String,
+                            item.productName,
                             style: AppTextStyles.bodyMedium,
                           ),
                           Text(
-                            '${item['size']} x ${item['quantity']}',
+                            '${item.weight} x ${item.quantity}',
                             style: AppTextStyles.bodySmall.copyWith(
                               color: AppColors.textSecondary,
                             ),
@@ -532,9 +523,7 @@ class OrderDetailScreen extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      Formatters.formatCurrency(
-                        (item['price'] as double) * (item['quantity'] as int),
-                      ),
+                      Formatters.formatCurrency(item.totalPrice),
                       style: AppTextStyles.titleSmall,
                     ),
                   ],
@@ -547,10 +536,10 @@ class OrderDetailScreen extends StatelessWidget {
 
   Widget _buildAddressSection(
     BuildContext context,
-    Map<String, dynamic> order,
+    OrderModel order,
     AppLocalizations l10n,
   ) {
-    final address = order['address'] as Map<String, dynamic>;
+    final address = order.deliveryAddress;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -570,27 +559,29 @@ class OrderDetailScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      address['name'] as String,
+                      address.name,
                       style: AppTextStyles.bodyMedium.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      address['address'] as String,
+                      address.landmark.isNotEmpty
+                          ? '${address.address}, ${address.landmark}'
+                          : address.address,
                       style: AppTextStyles.bodySmall.copyWith(
                         color: AppColors.textSecondary,
                       ),
                     ),
                     Text(
-                      address['city'] as String,
+                      '${address.city} - ${address.pincode}',
                       style: AppTextStyles.bodySmall.copyWith(
                         color: AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      address['phone'] as String,
+                      address.phone,
                       style: AppTextStyles.bodySmall.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -607,10 +598,35 @@ class OrderDetailScreen extends StatelessWidget {
 
   Widget _buildPaymentSection(
     BuildContext context,
-    Map<String, dynamic> order,
+    OrderModel order,
     AppLocalizations l10n,
   ) {
-    final payment = order['payment'] as Map<String, dynamic>;
+    final isCOD = order.paymentMethod == PaymentMethod.cod;
+    final isDelivered = order.status == OrderStatus.delivered;
+    // For COD, payment is only complete after delivery
+    final isPaid = isCOD ? isDelivered : true;
+
+    // Payment icon based on method
+    IconData paymentIcon;
+    Color iconColor;
+    switch (order.paymentMethod) {
+      case PaymentMethod.upi:
+        paymentIcon = Icons.account_balance;
+        iconColor = AppColors.upi;
+        break;
+      case PaymentMethod.card:
+        paymentIcon = Icons.credit_card;
+        iconColor = AppColors.info;
+        break;
+      case PaymentMethod.cod:
+        paymentIcon = Icons.payments_outlined;
+        iconColor = AppColors.warning;
+        break;
+      case PaymentMethod.netBanking:
+        paymentIcon = Icons.language;
+        iconColor = AppColors.info;
+        break;
+    }
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -622,32 +638,64 @@ class OrderDetailScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.payment, color: AppColors.upi, size: 20),
+              Icon(paymentIcon, color: iconColor, size: 20),
               const SizedBox(width: 8),
-              Text(payment['method'] as String, style: AppTextStyles.bodyMedium),
+              Text(order.paymentMethod.displayName,
+                  style: AppTextStyles.bodyMedium),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withAlpha(26),
+                  color: isPaid
+                      ? AppColors.success.withAlpha(26)
+                      : AppColors.warning.withAlpha(26),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  payment['status'] as String,
+                  isPaid ? l10n.paid : 'Pay on Delivery',
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.success,
+                    color: isPaid ? AppColors.success : AppColors.warning,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            '${l10n.transactionId}: ${payment['transactionId']}',
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textTertiary,
+          // Only show transaction ID for online payments
+          if (!isCOD) ...[
+            const SizedBox(height: 8),
+            Text(
+              '${l10n.transactionId}: ${order.id.substring(0, 12).toUpperCase()}',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.textTertiary,
+              ),
             ),
-          ),
+          ],
+          // Show COD info message
+          if (isCOD && !isDelivered) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withAlpha(15),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.warning.withAlpha(50)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 18, color: AppColors.warning),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Please keep exact change ready at the time of delivery',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.warning,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -655,9 +703,14 @@ class OrderDetailScreen extends StatelessWidget {
 
   Widget _buildBillSection(
     BuildContext context,
-    Map<String, dynamic> order,
+    OrderModel order,
     AppLocalizations l10n,
   ) {
+    final isCOD = order.paymentMethod == PaymentMethod.cod;
+    final isDelivered = order.status == OrderStatus.delivered;
+    // For COD, show "Amount Due" until delivered, then "Total Paid"
+    final totalLabel = (isCOD && !isDelivered) ? 'Amount Due' : l10n.totalPaid;
+
     return Container(
       padding: const EdgeInsets.all(16),
       color: AppColors.surface,
@@ -666,22 +719,21 @@ class OrderDetailScreen extends StatelessWidget {
         children: [
           Text(l10n.billDetails, style: AppTextStyles.titleSmall),
           const SizedBox(height: 12),
-          _buildBillRow(l10n.itemTotal, order['subtotal'] as double),
-          if ((order['discount'] as double) > 0)
-            _buildBillRow(l10n.couponDiscount, -(order['discount'] as double),
-                isDiscount: true),
+          _buildBillRow(l10n.itemTotal, order.subtotal),
+          if (order.discount > 0)
+            _buildBillRow(l10n.couponDiscount, -order.discount, isDiscount: true),
           _buildBillRow(
             l10n.delivery,
-            order['deliveryCharge'] as double,
-            subtitle: (order['deliveryCharge'] as double) == 0 ? l10n.free : null,
+            order.deliveryCharge,
+            subtitle: order.deliveryCharge == 0 ? l10n.free : null,
           ),
           const Divider(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(l10n.totalPaid, style: AppTextStyles.titleMedium),
+              Text(totalLabel, style: AppTextStyles.titleMedium),
               Text(
-                Formatters.formatCurrency(order['total'] as double),
+                Formatters.formatCurrency(order.total),
                 style: AppTextStyles.titleMedium.copyWith(
                   color: AppColors.primary,
                 ),
@@ -727,7 +779,8 @@ class OrderDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHelpSection(BuildContext context, AppLocalizations l10n) {
+  Widget _buildHelpSection(
+      BuildContext context, OrderModel order, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(16),
       color: AppColors.surface,
@@ -746,35 +799,48 @@ class OrderDetailScreen extends StatelessWidget {
             title: l10n.callSupport,
             onTap: () {},
           ),
-          _buildHelpOption(
-            icon: Icons.cancel_outlined,
-            title: l10n.cancelOrder,
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (dialogContext) => AlertDialog(
-                  title: Text(l10n.cancelOrder),
-                  content: Text(l10n.cancelOrderConfirm),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      child: Text(l10n.no),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(dialogContext);
-                        context.go(AppRoutes.orders);
-                      },
-                      child: Text(
-                        l10n.yesCancelOrder,
-                        style: TextStyle(color: AppColors.error),
-                      ),
-                    ),
-                  ],
-                ),
+          if (order.canBeCancelled)
+            _buildHelpOption(
+              icon: Icons.cancel_outlined,
+              title: l10n.cancelOrder,
+              onTap: () => _showCancelDialog(context, order, l10n),
+              isDestructive: true,
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showCancelDialog(
+      BuildContext context, OrderModel order, AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.cancelOrder),
+        content: Text(l10n.cancelOrderConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.no),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final success = await orderService.cancelOrder(
+                order.id,
+                reason: 'Cancelled by user',
               );
+              if (mounted && success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Order cancelled successfully')),
+                );
+                context.go(AppRoutes.orders);
+              }
             },
-            isDestructive: true,
+            child: Text(
+              l10n.yesCancelOrder,
+              style: TextStyle(color: AppColors.error),
+            ),
           ),
         ],
       ),

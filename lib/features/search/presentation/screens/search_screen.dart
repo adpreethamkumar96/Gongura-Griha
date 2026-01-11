@@ -1,15 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/data/models/product_inventory_model.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// Search Screen
 ///
-/// Allows users to search for products.
+/// Allows users to search for products from Firestore inventory.
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
 
@@ -21,23 +25,17 @@ class _SearchScreenState extends State<SearchScreen> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
 
-  List<Map<String, dynamic>> _searchResults = [];
+  List<ProductInventoryModel> _allProducts = [];
+  List<ProductInventoryModel> _searchResults = [];
+  bool _isLoading = true;
   bool _isSearching = false;
+  StreamSubscription? _inventorySubscription;
 
   // Recent searches with icons - keys for localization
   final List<Map<String, dynamic>> _recentSearchesData = [
     {'key': 'pachadi', 'icon': Icons.eco},
     {'key': 'chutney', 'icon': Icons.restaurant_menu},
     {'key': 'podi', 'icon': Icons.grain},
-  ];
-
-  // Popular search suggestions with icons
-  List<Map<String, dynamic>> _getPopularSearches(AppLocalizations l10n) => [
-    {'name': l10n.traditionalGonguraPachadi, 'icon': Icons.eco, 'slug': 'traditional-gongura-pachadi'},
-    {'name': l10n.classicGonguraChutney, 'icon': Icons.restaurant_menu, 'slug': 'classic-gongura-chutney'},
-    {'name': l10n.spicyGonguraPodi, 'icon': Icons.grain, 'slug': 'spicy-gongura-podi'},
-    {'name': l10n.natural100, 'icon': Icons.nature, 'isTag': true},
-    {'name': l10n.freshDelivery, 'icon': Icons.local_shipping, 'isTag': true},
   ];
 
   // Get localized recent search names
@@ -54,51 +52,48 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  // All products with proper data matching actual products
-  List<Map<String, dynamic>> _getAllProducts(AppLocalizations l10n) => [
-    {
-      'name': l10n.traditionalGonguraPachadi,
-      'price': 199.0,
-      'image': 'assets/images/GonguraPickle.png',
-      'isVeg': true,
-      'slug': 'traditional-gongura-pachadi',
-      'category': 'pachadi',
-      'description': l10n.pachadiDescription,
-    },
-    {
-      'name': l10n.classicGonguraChutney,
-      'price': 149.0,
-      'image': 'assets/images/GonguraChutney.png',
-      'isVeg': true,
-      'slug': 'classic-gongura-chutney',
-      'category': 'chutney',
-      'description': l10n.chutneyDescription,
-    },
-    {
-      'name': l10n.spicyGonguraPodi,
-      'price': 129.0,
-      'image': 'assets/images/GonguraPowder.png',
-      'isVeg': true,
-      'slug': 'spicy-gongura-podi',
-      'category': 'powder',
-      'description': l10n.podiDescription,
-    },
-  ];
-
   @override
   void initState() {
     super.initState();
     _focusNode.requestFocus();
+    _loadProducts();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     _focusNode.dispose();
+    _inventorySubscription?.cancel();
     super.dispose();
   }
 
-  void _performSearch(String query, AppLocalizations l10n) {
+  void _loadProducts() {
+    // First, check if we already have cached inventory data
+    final cachedProducts = inventoryService.cachedInventory;
+    if (cachedProducts.isNotEmpty) {
+      _allProducts = cachedProducts.values.where((p) => p.isActive).toList();
+      _isLoading = false;
+    }
+
+    // Listen to inventory stream for real-time updates
+    _inventorySubscription = inventoryService.inventoryStream.listen(
+      (productsMap) {
+        if (mounted) {
+          setState(() {
+            _allProducts = productsMap.values.where((p) => p.isActive).toList();
+            _isLoading = false;
+          });
+        }
+      },
+      onError: (error) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      },
+    );
+  }
+
+  void _performSearch(String query) {
     if (query.isEmpty) {
       setState(() {
         _searchResults = [];
@@ -109,16 +104,16 @@ class _SearchScreenState extends State<SearchScreen> {
 
     setState(() => _isSearching = true);
 
-    // Simulate search with localized products
-    final allProducts = _getAllProducts(l10n);
-    final results = allProducts.where((product) {
-      final name = (product['name'] as String).toLowerCase();
-      final category = (product['category'] as String).toLowerCase();
-      final description = (product['description'] as String).toLowerCase();
+    // Track search in analytics (only for meaningful queries)
+    if (query.length >= 3) {
+      analyticsService.logSearch(searchTerm: query);
+    }
+
+    final results = _allProducts.where((product) {
+      final name = product.productName.toLowerCase();
+      final category = product.category.toLowerCase();
       final searchQuery = query.toLowerCase();
-      return name.contains(searchQuery) ||
-             category.contains(searchQuery) ||
-             description.contains(searchQuery);
+      return name.contains(searchQuery) || category.contains(searchQuery);
     }).toList();
 
     setState(() {
@@ -137,13 +132,15 @@ class _SearchScreenState extends State<SearchScreen> {
         titleSpacing: 0,
         title: _buildSearchBar(l10n),
       ),
-      body: _searchController.text.isEmpty
-          ? _buildSuggestions(l10n)
-          : _isSearching
-              ? const Center(child: CircularProgressIndicator())
-              : _searchResults.isEmpty
-                  ? _buildNoResults(l10n)
-                  : _buildSearchResults(),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _searchController.text.isEmpty
+              ? _buildSuggestions(l10n)
+              : _isSearching
+                  ? const Center(child: CircularProgressIndicator())
+                  : _searchResults.isEmpty
+                      ? _buildNoResults(l10n)
+                      : _buildSearchResults(),
     );
   }
 
@@ -154,7 +151,7 @@ class _SearchScreenState extends State<SearchScreen> {
       child: TextField(
         controller: _searchController,
         focusNode: _focusNode,
-        onChanged: (query) => _performSearch(query, l10n),
+        onChanged: _performSearch,
         decoration: InputDecoration(
           hintText: l10n.searchPickles,
           hintStyle: AppTextStyles.bodyMedium.copyWith(
@@ -172,7 +169,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   onPressed: () {
                     _searchController.clear();
-                    _performSearch('', l10n);
+                    _performSearch('');
                   },
                 )
               : null,
@@ -192,7 +189,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildSuggestions(AppLocalizations l10n) {
-    final popularSearches = _getPopularSearches(l10n);
+    final featuredProducts = _allProducts.take(3).toList();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -235,7 +232,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 return GestureDetector(
                   onTap: () {
                     _searchController.text = searchName;
-                    _performSearch(searchName, l10n);
+                    _performSearch(searchName);
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -274,69 +271,21 @@ class _SearchScreenState extends State<SearchScreen> {
           ],
 
           // Quick Actions - Featured Products
-          Row(
-            children: [
-              Icon(Icons.local_fire_department, size: 18, color: AppColors.accent),
-              const SizedBox(width: 8),
-              Text(
-                l10n.featuredProducts,
-                style: AppTextStyles.titleSmall,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _buildFeaturedProductsRow(l10n),
-
-          const SizedBox(height: 24),
-
-          // Popular Searches with icons
-          Row(
-            children: [
-              Icon(Icons.trending_up, size: 18, color: AppColors.info),
-              const SizedBox(width: 8),
-              Text(
-                l10n.popularSearches,
-                style: AppTextStyles.titleSmall,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: popularSearches.map((search) {
-              final isTag = search['isTag'] == true;
-              return ActionChip(
-                label: Text(
-                  search['name'] as String,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isTag ? AppColors.textSecondary : AppColors.primary,
-                  ),
+          if (featuredProducts.isNotEmpty) ...[
+            Row(
+              children: [
+                Icon(Icons.local_fire_department, size: 18, color: AppColors.accent),
+                const SizedBox(width: 8),
+                Text(
+                  l10n.featuredProducts,
+                  style: AppTextStyles.titleSmall,
                 ),
-                onPressed: () {
-                  if (!isTag && search['slug'] != null) {
-                    context.push(AppRoutes.getProductDetailRoute(search['slug'] as String));
-                  } else {
-                    _searchController.text = search['name'] as String;
-                    _performSearch(search['name'] as String, l10n);
-                  }
-                },
-                avatar: Icon(
-                  search['icon'] as IconData,
-                  size: 16,
-                  color: isTag ? AppColors.textSecondary : AppColors.primary,
-                ),
-                backgroundColor: isTag
-                    ? AppColors.backgroundSecondary
-                    : AppColors.primary.withAlpha(26),
-                side: BorderSide.none,
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-              );
-            }).toList(),
-          ),
-
-          const SizedBox(height: 24),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildFeaturedProductsRow(featuredProducts),
+            const SizedBox(height: 24),
+          ],
 
           // Categories
           Row(
@@ -372,9 +321,7 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildFeaturedProductsRow(AppLocalizations l10n) {
-    final products = _getAllProducts(l10n);
-
+  Widget _buildFeaturedProductsRow(List<ProductInventoryModel> products) {
     return SizedBox(
       height: 120,
       child: ListView.separated(
@@ -383,9 +330,11 @@ class _SearchScreenState extends State<SearchScreen> {
         separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
           final product = products[index];
+          final isNetworkImage = product.productImage.startsWith('http');
+
           return GestureDetector(
             onTap: () {
-              context.push(AppRoutes.getProductDetailRoute(product['slug'] as String));
+              context.push(AppRoutes.getProductDetailRoute(product.productSlug));
             },
             child: Container(
               width: 100,
@@ -409,15 +358,25 @@ class _SearchScreenState extends State<SearchScreen> {
                       height: 70,
                       width: double.infinity,
                       color: AppColors.primary.withAlpha(20),
-                      child: Image.asset(
-                        product['image'] as String,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(
-                          Icons.eco,
-                          size: 32,
-                          color: AppColors.primary.withAlpha(100),
-                        ),
-                      ),
+                      child: isNetworkImage
+                          ? Image.network(
+                              product.productImage,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.eco,
+                                size: 32,
+                                color: AppColors.primary.withAlpha(100),
+                              ),
+                            )
+                          : Image.asset(
+                              product.productImage,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.eco,
+                                size: 32,
+                                color: AppColors.primary.withAlpha(100),
+                              ),
+                            ),
                     ),
                   ),
                   // Product Name & Price
@@ -429,7 +388,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            (product['name'] as String).split(' ').take(2).join(' '),
+                            product.productName.split(' ').take(2).join(' '),
                             style: AppTextStyles.labelSmall.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -437,7 +396,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            Formatters.formatCurrency(product['price'] as double),
+                            Formatters.formatCurrency(product.basePrice),
                             style: AppTextStyles.labelSmall.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
@@ -503,28 +462,24 @@ class _SearchScreenState extends State<SearchScreen> {
         'name': l10n.pachadi,
         'icon': Icons.eco,
         'color': AppColors.primary,
-        'description': l10n.pachadiDescription.split('.').first,
-        'slug': 'pachadi',
+        'slug': 'Pachadi',
       },
       {
         'name': l10n.chutney,
         'icon': Icons.restaurant_menu,
         'color': AppColors.accent,
-        'description': l10n.chutneyDescription.split('.').first,
-        'slug': 'chutney',
+        'slug': 'Chutney',
       },
       {
         'name': l10n.powder,
         'icon': Icons.grain,
         'color': AppColors.info,
-        'description': l10n.podiDescription.split('.').first,
-        'slug': 'powder',
+        'slug': 'Powder',
       },
       {
         'name': l10n.allProducts,
         'icon': Icons.grid_view,
         'color': AppColors.veg,
-        'description': '',
         'slug': 'all',
       },
     ];
@@ -651,6 +606,8 @@ class _SearchScreenState extends State<SearchScreen> {
       itemCount: _searchResults.length,
       itemBuilder: (context, index) {
         final product = _searchResults[index];
+        final isNetworkImage = product.productImage.startsWith('http');
+
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
@@ -666,9 +623,7 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           child: InkWell(
             onTap: () {
-              context.push(
-                AppRoutes.getProductDetailRoute(product['slug'] as String),
-              );
+              context.push(AppRoutes.getProductDetailRoute(product.productSlug));
             },
             borderRadius: BorderRadius.circular(12),
             child: Padding(
@@ -682,15 +637,25 @@ class _SearchScreenState extends State<SearchScreen> {
                       width: 70,
                       height: 70,
                       color: AppColors.primary.withAlpha(20),
-                      child: Image.asset(
-                        product['image'] as String,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(
-                          Icons.eco,
-                          size: 32,
-                          color: AppColors.primary.withAlpha(100),
-                        ),
-                      ),
+                      child: isNetworkImage
+                          ? Image.network(
+                              product.productImage,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.eco,
+                                size: 32,
+                                color: AppColors.primary.withAlpha(100),
+                              ),
+                            )
+                          : Image.asset(
+                              product.productImage,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.eco,
+                                size: 32,
+                                color: AppColors.primary.withAlpha(100),
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -706,7 +671,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               padding: const EdgeInsets.all(2),
                               decoration: BoxDecoration(
                                 border: Border.all(
-                                  color: (product['isVeg'] as bool)
+                                  color: product.isVeg
                                       ? AppColors.veg
                                       : AppColors.nonVeg,
                                 ),
@@ -715,7 +680,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               child: Icon(
                                 Icons.eco,
                                 size: 10,
-                                color: (product['isVeg'] as bool)
+                                color: product.isVeg
                                     ? AppColors.veg
                                     : AppColors.nonVeg,
                               ),
@@ -723,7 +688,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
-                                product['name'] as String,
+                                product.productName,
                                 style: AppTextStyles.bodyMedium.copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -745,7 +710,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
-                            (product['category'] as String).toUpperCase(),
+                            product.category.toUpperCase(),
                             style: AppTextStyles.labelSmall.copyWith(
                               color: AppColors.primary,
                               fontSize: 10,
@@ -756,7 +721,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         const SizedBox(height: 6),
                         // Price
                         Text(
-                          Formatters.formatCurrency(product['price'] as double),
+                          Formatters.formatCurrency(product.basePrice),
                           style: AppTextStyles.titleSmall.copyWith(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,

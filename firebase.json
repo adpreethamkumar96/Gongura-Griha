@@ -1,0 +1,47 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "functions": {
+    "source": "functions",
+    "codebase": "default",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log"
+    ]
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "gongura-griha",
+          "appId": "1:323656730456:android:cb34f3364a390fce4dc72d",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "gongura-griha",
+          "appId": "1:323656730456:ios:14dcd3145482aa554dc72d",
+          "uploadDebugSymbols": true,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "gongura-griha",
+          "configurations": {
+            "android": "1:323656730456:android:cb34f3364a390fce4dc72d",
+            "ios": "1:323656730456:ios:14dcd3145482aa554dc72d",
+            "web": "1:323656730456:web:512d133e135584f04dc72d"
+          }
+        }
+      }
+    }
+  }
+}

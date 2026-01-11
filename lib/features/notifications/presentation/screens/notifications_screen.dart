@@ -1,11 +1,17 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/data/models/notification_model.dart';
+import '../../../../core/di/injection.dart';
 
 /// Notifications Screen
 ///
-/// Displays user notifications and updates.
+/// Displays user notifications from Firestore with real-time updates.
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
@@ -14,54 +20,54 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  // Mock notifications data
-  final List<Map<String, dynamic>> _notifications = [
-    {
-      'id': '1',
-      'type': 'order',
-      'title': 'Order Delivered',
-      'message': 'Your order #GG12345 has been delivered successfully.',
-      'time': DateTime.now().subtract(const Duration(hours: 2)),
-      'isRead': false,
-    },
-    {
-      'id': '2',
-      'type': 'promo',
-      'title': 'New Year Sale!',
-      'message': 'Get 25% off on all pickles. Use code: NEWYEAR25',
-      'time': DateTime.now().subtract(const Duration(hours: 5)),
-      'isRead': false,
-    },
-    {
-      'id': '3',
-      'type': 'order',
-      'title': 'Order Shipped',
-      'message': 'Your order #GG12344 has been shipped. Track your delivery.',
-      'time': DateTime.now().subtract(const Duration(days: 1)),
-      'isRead': true,
-    },
-    {
-      'id': '4',
-      'type': 'info',
-      'title': 'New Product Alert',
-      'message':
-          'Try our new Gongura Fish Pickle - Now available in limited stock!',
-      'time': DateTime.now().subtract(const Duration(days: 2)),
-      'isRead': true,
-    },
-    {
-      'id': '5',
-      'type': 'promo',
-      'title': 'Weekend Special',
-      'message': 'Free delivery on orders above Rs. 499. Order now!',
-      'time': DateTime.now().subtract(const Duration(days: 3)),
-      'isRead': true,
-    },
-  ];
+  StreamSubscription<List<NotificationModel>>? _notificationsSubscription;
+  List<NotificationModel> _notifications = [];
+  bool _isLoading = true;
+  String? _userId;
+
+  @override
+  void initState() {
+    super.initState();
+    _initNotifications();
+  }
+
+  Future<void> _initNotifications() async {
+    final user = authService.currentUser;
+    if (user == null) {
+      setState(() {
+        _isLoading = false;
+        _notifications = [];
+      });
+      return;
+    }
+
+    _userId = user.uid;
+
+    // Seed sample notifications for development
+    await seedNotificationsForUser(_userId!);
+
+    // Listen to real-time updates
+    _notificationsSubscription = notificationService
+        .getUserNotificationsStream(_userId!)
+        .listen((notifications) {
+      if (mounted) {
+        setState(() {
+          _notifications = notifications;
+          _isLoading = false;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _notificationsSubscription?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final unreadCount = _notifications.where((n) => !(n['isRead'] as bool)).length;
+    final unreadCount = _notifications.where((n) => !n.isRead).length;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -78,9 +84,47 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
         ],
       ),
-      body: _notifications.isEmpty
-          ? _buildEmptyState()
-          : _buildNotificationsList(),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _userId == null
+              ? _buildLoginPrompt()
+              : _notifications.isEmpty
+                  ? _buildEmptyState()
+                  : _buildNotificationsList(),
+    );
+  }
+
+  Widget _buildLoginPrompt() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.notifications_off_outlined,
+            size: 80,
+            color: AppColors.textTertiary,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Login to see notifications',
+            style: AppTextStyles.titleLarge.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Sign in to get updates on orders and offers',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textTertiary,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => context.push(AppRoutes.login),
+            child: const Text('Login'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -122,13 +166,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _buildNotificationItem(Map<String, dynamic> notification) {
-    final isRead = notification['isRead'] as bool;
-    final type = notification['type'] as String;
-    final time = notification['time'] as DateTime;
-
+  Widget _buildNotificationItem(NotificationModel notification) {
     return Dismissible(
-      key: Key(notification['id'] as String),
+      key: Key(notification.id),
       direction: DismissDirection.endToStart,
       background: Container(
         color: AppColors.error,
@@ -136,9 +176,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         padding: const EdgeInsets.only(right: 20),
         child: const Icon(Icons.delete, color: Colors.white),
       ),
-      onDismissed: (_) => _deleteNotification(notification['id'] as String),
+      onDismissed: (_) => _deleteNotification(notification.id),
       child: Container(
-        color: isRead ? AppColors.surface : AppColors.primary.withAlpha(13),
+        color: notification.isRead
+            ? AppColors.surface
+            : AppColors.primary.withAlpha(13),
         child: ListTile(
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
@@ -147,12 +189,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           leading: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: _getTypeColor(type).withAlpha(26),
+              color: _getTypeColor(notification.type).withAlpha(26),
               shape: BoxShape.circle,
             ),
             child: Icon(
-              _getTypeIcon(type),
-              color: _getTypeColor(type),
+              _getTypeIcon(notification.type),
+              color: _getTypeColor(notification.type),
               size: 24,
             ),
           ),
@@ -160,13 +202,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             children: [
               Expanded(
                 child: Text(
-                  notification['title'] as String,
+                  notification.title,
                   style: AppTextStyles.titleSmall.copyWith(
-                    fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                    fontWeight:
+                        notification.isRead ? FontWeight.normal : FontWeight.bold,
                   ),
                 ),
               ),
-              if (!isRead)
+              if (!notification.isRead)
                 Container(
                   width: 8,
                   height: 8,
@@ -182,7 +225,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             children: [
               const SizedBox(height: 4),
               Text(
-                notification['message'] as String,
+                notification.message,
                 style: AppTextStyles.bodySmall.copyWith(
                   color: AppColors.textSecondary,
                 ),
@@ -191,7 +234,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                _formatTime(time),
+                _formatTime(notification.createdAt),
                 style: AppTextStyles.labelSmall.copyWith(
                   color: AppColors.textTertiary,
                 ),
@@ -204,29 +247,32 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Color _getTypeColor(String type) {
+  Color _getTypeColor(NotificationType type) {
     switch (type) {
-      case 'order':
+      case NotificationType.order:
+      case NotificationType.delivery:
         return AppColors.primary;
-      case 'promo':
+      case NotificationType.promotion:
         return AppColors.accent;
-      case 'info':
+      case NotificationType.product:
         return AppColors.info;
-      default:
+      case NotificationType.system:
         return AppColors.textSecondary;
     }
   }
 
-  IconData _getTypeIcon(String type) {
+  IconData _getTypeIcon(NotificationType type) {
     switch (type) {
-      case 'order':
+      case NotificationType.order:
         return Icons.local_shipping_outlined;
-      case 'promo':
+      case NotificationType.delivery:
+        return Icons.delivery_dining_outlined;
+      case NotificationType.promotion:
         return Icons.local_offer_outlined;
-      case 'info':
+      case NotificationType.product:
+        return Icons.new_releases_outlined;
+      case NotificationType.system:
         return Icons.info_outlined;
-      default:
-        return Icons.notifications_outlined;
     }
   }
 
@@ -245,31 +291,42 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  void _handleNotificationTap(Map<String, dynamic> notification) {
+  void _handleNotificationTap(NotificationModel notification) async {
     // Mark as read
-    setState(() {
-      notification['isRead'] = true;
-    });
+    if (!notification.isRead) {
+      await notificationService.markAsRead(notification.id);
+    }
 
-    // Handle navigation based on type
-    // TODO: Navigate to relevant screen based on notification type
+    if (!mounted) return;
+
+    // Handle navigation based on type and data
+    if (notification.data != null) {
+      final orderNumber = notification.data!['orderNumber'] as String?;
+      final productSlug = notification.data!['productSlug'] as String?;
+
+      if (orderNumber != null) {
+        context.push(AppRoutes.getOrderDetailRoute(orderNumber));
+      } else if (productSlug != null) {
+        context.push(AppRoutes.getProductDetailRoute(productSlug));
+      }
+    }
   }
 
-  void _markAllAsRead() {
-    setState(() {
-      for (var notification in _notifications) {
-        notification['isRead'] = true;
-      }
-    });
+  void _markAllAsRead() async {
+    if (_userId == null) return;
+
+    await notificationService.markAllAsRead(_userId!);
+
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('All notifications marked as read')),
     );
   }
 
-  void _deleteNotification(String id) {
-    setState(() {
-      _notifications.removeWhere((n) => n['id'] == id);
-    });
+  void _deleteNotification(String id) async {
+    await notificationService.deleteNotification(id);
+
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Notification deleted')),
     );

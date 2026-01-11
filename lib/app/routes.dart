@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/di/injection.dart';
 import '../features/address/presentation/screens/add_address_screen.dart';
 import '../features/address/presentation/screens/address_list_screen.dart';
 import '../features/address/presentation/screens/edit_address_screen.dart';
@@ -85,6 +86,7 @@ GoRouter createRouter() {
   return GoRouter(
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: true,
+    observers: [analyticsService.observer],
     routes: [
       // Splash Screen
       GoRoute(
@@ -111,7 +113,10 @@ GoRouter createRouter() {
         name: 'otp',
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
-          return OtpScreen(phoneNumber: extra?['phone'] as String?);
+          return OtpScreen(
+            phoneNumber: extra?['phone'] as String?,
+            verificationId: extra?['verificationId'] as String?,
+          );
         },
       ),
       GoRoute(
@@ -186,7 +191,12 @@ GoRouter createRouter() {
       GoRoute(
         path: AppRoutes.orderSuccess,
         name: 'orderSuccess',
-        builder: (context, state) => const OrderSuccessScreen(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return OrderSuccessScreen(
+            orderNumber: extra?['orderNumber'] as String?,
+          );
+        },
       ),
 
       // Order Detail

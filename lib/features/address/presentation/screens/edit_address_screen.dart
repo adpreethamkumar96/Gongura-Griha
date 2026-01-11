@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/data/models/address_model.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../shared/widgets/buttons/primary_button.dart';
 import '../../../../shared/widgets/inputs/custom_text_field.dart';
 
@@ -23,73 +25,53 @@ class EditAddressScreen extends StatefulWidget {
 
 class _EditAddressScreenState extends State<EditAddressScreen> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _nameController;
-  late final TextEditingController _phoneController;
-  late final TextEditingController _addressController;
-  late final TextEditingController _landmarkController;
-  late final TextEditingController _cityController;
-  late final TextEditingController _stateController;
-  late final TextEditingController _pincodeController;
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _landmarkController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _stateController = TextEditingController();
+  final _pincodeController = TextEditingController();
 
   String _selectedType = 'Home';
   bool _isDefault = false;
   bool _isLoading = false;
+  bool _isLoadingAddress = true;
+  AddressModel? _address;
 
   final List<String> _addressTypes = ['Home', 'Office', 'Other'];
-
-  // Mock address data based on ID
-  Map<String, dynamic> get _mockAddress => {
-        '1': {
-          'type': 'Home',
-          'name': 'Ramesh Kumar',
-          'phone': '9876543210',
-          'address': '123, Green Valley Apartments',
-          'landmark': 'Near City Mall',
-          'city': 'Hyderabad',
-          'state': 'Telangana',
-          'pincode': '500001',
-          'isDefault': true,
-        },
-        '2': {
-          'type': 'Office',
-          'name': 'Ramesh Kumar',
-          'phone': '9876543210',
-          'address': '456, Tech Park Building, 5th Floor',
-          'landmark': 'HITEC City',
-          'city': 'Hyderabad',
-          'state': 'Telangana',
-          'pincode': '500081',
-          'isDefault': false,
-        },
-      }[widget.addressId] ??
-      {
-        'type': 'Home',
-        'name': '',
-        'phone': '',
-        'address': '',
-        'landmark': '',
-        'city': '',
-        'state': '',
-        'pincode': '',
-        'isDefault': false,
-      };
 
   @override
   void initState() {
     super.initState();
-    final address = _mockAddress;
-    _nameController = TextEditingController(text: address['name'] as String);
-    _phoneController = TextEditingController(text: address['phone'] as String);
-    _addressController =
-        TextEditingController(text: address['address'] as String);
-    _landmarkController =
-        TextEditingController(text: address['landmark'] as String);
-    _cityController = TextEditingController(text: address['city'] as String);
-    _stateController = TextEditingController(text: address['state'] as String);
-    _pincodeController =
-        TextEditingController(text: address['pincode'] as String);
-    _selectedType = address['type'] as String;
-    _isDefault = address['isDefault'] as bool;
+    _loadAddress();
+  }
+
+  Future<void> _loadAddress() async {
+    final address = await addressService.getAddress(widget.addressId);
+    if (address != null && mounted) {
+      setState(() {
+        _address = address;
+        _nameController.text = address.name;
+        // Remove +91 prefix if present for the phone field
+        final phone = address.phone.replaceFirst('+91 ', '');
+        _phoneController.text = phone;
+        _addressController.text = address.address;
+        _landmarkController.text = address.landmark;
+        _cityController.text = address.city;
+        _stateController.text = address.state;
+        _pincodeController.text = address.pincode;
+        _selectedType = address.type.displayName;
+        _isDefault = address.isDefault;
+        _isLoadingAddress = false;
+      });
+    } else if (mounted) {
+      setState(() => _isLoadingAddress = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Address not found')),
+      );
+      context.pop();
+    }
   }
 
   @override
@@ -106,6 +88,14 @@ class _EditAddressScreenState extends State<EditAddressScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingAddress) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(title: const Text('Edit Address')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -327,24 +317,65 @@ class _EditAddressScreenState extends State<EditAddressScreen> {
     }
   }
 
+  AddressType _getAddressType(String type) {
+    switch (type.toLowerCase()) {
+      case 'home':
+        return AddressType.home;
+      case 'office':
+        return AddressType.office;
+      default:
+        return AddressType.other;
+    }
+  }
+
   Future<void> _updateAddress() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final userId = authService.currentUser?.uid;
+    if (userId == null) return;
+
     setState(() => _isLoading = true);
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 1));
-
-    setState(() => _isLoading = false);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Address updated successfully'),
-          backgroundColor: AppColors.success,
-        ),
+    try {
+      // Update address
+      final success = await addressService.updateAddress(
+        addressId: widget.addressId,
+        name: _nameController.text.trim(),
+        phone: '+91 ${_phoneController.text.trim()}',
+        address: _addressController.text.trim(),
+        landmark: _landmarkController.text.trim(),
+        city: _cityController.text.trim(),
+        state: _stateController.text.trim(),
+        pincode: _pincodeController.text.trim(),
+        type: _getAddressType(_selectedType),
       );
-      context.pop();
+
+      // Update default status if changed
+      if (_isDefault && _address != null && !_address!.isDefault) {
+        await addressService.setDefaultAddress(userId, widget.addressId);
+      }
+
+      setState(() => _isLoading = false);
+
+      if (mounted && success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Address updated successfully'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        context.pop();
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update address: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }

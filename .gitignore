@@ -43,3 +43,29 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firebase Functions
+functions/node_modules/
+functions/.env
+functions/.runtimeconfig.json
+
+# Environment files (NEVER commit these)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Firebase debug logs
+firebase-debug.log
+firebase-debug.*.log
+
+# Keystore files (NEVER commit these)
+*.jks
+*.keystore
+key.properties
+
+# iOS sensitive files
+ios/Runner/GoogleService-Info-*.plist
+
+# Debug info for obfuscation (keep secure)
+/debug-info/

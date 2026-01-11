@@ -4,6 +4,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/data/models/cart_item_model.dart';
+import '../../../../core/data/models/coupon_model.dart';
+import '../../../../core/data/repositories/cart_repository.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/buttons/primary_button.dart';
@@ -19,8 +23,12 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  CouponModel? _appliedCoupon;
+  double _discountAmount = 0;
+  List<CouponModel> _availableCoupons = [];
+  bool _isLoadingCoupons = false;
+
   // Size configuration matching product details screen
-  // sizeIndex 0 (S): max 2, sizeIndex 1 (M): max 4, sizeIndex 2 (L): max 5
   int _getMaxQuantity(int sizeIndex) {
     switch (sizeIndex) {
       case 0:
@@ -34,88 +42,40 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
-  IconData _getSizeIcon(int sizeIndex) {
-    switch (sizeIndex) {
-      case 0:
+  IconData _getSizeIcon(String sizeCode) {
+    switch (sizeCode) {
+      case 'S':
         return Icons.eco;
-      case 1:
+      case 'M':
         return Icons.nature;
-      case 2:
+      case 'L':
         return Icons.forest;
       default:
         return Icons.eco;
     }
   }
 
-  // Mock cart data - matching product details prices exactly
-  // Prices from product_detail_screen.dart:
-  // Pachadi: 250g=₹199, 500g=₹379, 1kg=₹699
-  // Chutney: 200g=₹149, 400g=₹279, 800g=₹529
-  // Podi: 100g=₹139, 250g=₹259, 500g=₹489
-  List<Map<String, dynamic>> _getCartItems(AppLocalizations l10n) => [
-    {
-      'id': '1',
-      'name': l10n.traditionalGonguraPachadi,
-      'size': '500g',
-      'sizeIndex': 1, // M size
-      'price': 379.0,
-      'quantity': 2,
-      'image': 'assets/images/GonguraPickle.png',
-      'isVeg': true,
-      'slug': 'traditional-gongura-pachadi',
-    },
-    {
-      'id': '2',
-      'name': l10n.spicyGonguraPodi,
-      'size': '100g',
-      'sizeIndex': 0, // S size
-      'price': 139.0,
-      'quantity': 1,
-      'image': 'assets/images/GonguraPowder.png',
-      'isVeg': true,
-      'slug': 'spicy-gongura-podi',
-    },
-    {
-      'id': '3',
-      'name': l10n.classicGonguraChutney,
-      'size': '800g',
-      'sizeIndex': 2, // L size
-      'price': 529.0,
-      'quantity': 3,
-      'image': 'assets/images/GonguraChutney.png',
-      'isVeg': true,
-      'slug': 'classic-gongura-chutney',
-    },
-  ];
-
-  // Mutable cart state
-  List<Map<String, dynamic>>? _cartItemsState;
-
-  String? _appliedCoupon;
-  double _couponDiscount = 0;
-
-  List<Map<String, dynamic>> _getCurrentCartItems(AppLocalizations l10n) {
-    _cartItemsState ??= _getCartItems(l10n);
-    return _cartItemsState!;
+  int _getSizeIndex(String sizeCode) {
+    switch (sizeCode) {
+      case 'S':
+        return 0;
+      case 'M':
+        return 1;
+      case 'L':
+        return 2;
+      default:
+        return 0;
+    }
   }
-
-  double _getSubtotal(List<Map<String, dynamic>> cartItems) => cartItems.fold(
-        0,
-        (sum, item) =>
-            sum + (item['price'] as double) * (item['quantity'] as int),
-      );
-
-  double _getDeliveryCharge(double subtotal) => subtotal >= 500 ? 0 : 40;
-
-  double _getTotal(double subtotal, double deliveryCharge) => subtotal + deliveryCharge - _couponDiscount;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final cartItems = _getCurrentCartItems(l10n);
-    final subtotal = _getSubtotal(cartItems);
-    final deliveryCharge = _getDeliveryCharge(subtotal);
-    final total = _getTotal(subtotal, deliveryCharge);
+    final cartItems = cartRepository.getItems();
+    final subtotal = cartRepository.subtotal;
+    final isFreeDelivery = _appliedCoupon?.type == CouponType.freeDelivery;
+    final deliveryCharge = isFreeDelivery ? 0.0 : cartRepository.calculateDeliveryCharge(subtotal);
+    final total = subtotal - _discountAmount + deliveryCharge;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -162,13 +122,15 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCartContent(AppLocalizations l10n, List<Map<String, dynamic>> cartItems, double subtotal) {
-    final deliveryCharge = _getDeliveryCharge(subtotal);
+  Widget _buildCartContent(AppLocalizations l10n, List<CartItemModel> cartItems, double subtotal) {
+    final isFreeDelivery = _appliedCoupon?.type == CouponType.freeDelivery;
+    final deliveryCharge = isFreeDelivery ? 0.0 : cartRepository.calculateDeliveryCharge(subtotal);
+
     return SingleChildScrollView(
       child: Column(
         children: [
           // Free Delivery Banner
-          if (subtotal < 500)
+          if (subtotal < CartRepository.freeDeliveryThreshold)
             Container(
               padding: const EdgeInsets.all(12),
               margin: const EdgeInsets.all(16),
@@ -183,7 +145,7 @@ class _CartScreenState extends State<CartScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      l10n.addMoreForFreeDelivery((500 - subtotal).toStringAsFixed(0)),
+                      l10n.addMoreForFreeDelivery((CartRepository.freeDeliveryThreshold - subtotal).toStringAsFixed(0)),
                       style: AppTextStyles.bodySmall.copyWith(
                         color: AppColors.info,
                       ),
@@ -211,7 +173,7 @@ class _CartScreenState extends State<CartScreen> {
           const SizedBox(height: 16),
 
           // Bill Details
-          _buildBillDetails(l10n, subtotal, deliveryCharge),
+          _buildBillDetails(l10n, subtotal, deliveryCharge, _discountAmount),
 
           const SizedBox(height: 100), // Space for bottom bar
         ],
@@ -219,11 +181,10 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCartItem(Map<String, dynamic> item, AppLocalizations l10n) {
-    final sizeIndex = item['sizeIndex'] as int? ?? 0;
-    final quantity = item['quantity'] as int;
+  Widget _buildCartItem(CartItemModel item, AppLocalizations l10n) {
+    final sizeIndex = _getSizeIndex(item.sizeCode);
     final maxQuantity = _getMaxQuantity(sizeIndex);
-    final sizeIcon = _getSizeIcon(sizeIndex);
+    final sizeIcon = _getSizeIcon(item.sizeCode);
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -250,7 +211,7 @@ class _CartScreenState extends State<CartScreen> {
                 child: Stack(
                   children: [
                     Image.asset(
-                      item['image'] as String,
+                      item.productImage,
                       width: 80,
                       height: 80,
                       fit: BoxFit.cover,
@@ -272,18 +233,14 @@ class _CartScreenState extends State<CartScreen> {
                           color: AppColors.surface,
                           borderRadius: BorderRadius.circular(3),
                           border: Border.all(
-                            color: item['isVeg'] as bool
-                                ? AppColors.veg
-                                : AppColors.nonVeg,
+                            color: item.isVeg ? AppColors.veg : AppColors.nonVeg,
                             width: 1.5,
                           ),
                         ),
                         child: Icon(
                           Icons.circle,
                           size: 8,
-                          color: item['isVeg'] as bool
-                              ? AppColors.veg
-                              : AppColors.nonVeg,
+                          color: item.isVeg ? AppColors.veg : AppColors.nonVeg,
                         ),
                       ),
                     ),
@@ -299,7 +256,7 @@ class _CartScreenState extends State<CartScreen> {
                   children: [
                     // Product Name
                     Text(
-                      item['name'] as String,
+                      item.productName,
                       style: AppTextStyles.titleSmall.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -308,7 +265,7 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                     const SizedBox(height: 8),
 
-                    // Size Badge with Icon (matching product details)
+                    // Size Badge with Icon
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -331,7 +288,7 @@ class _CartScreenState extends State<CartScreen> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            item['size'] as String,
+                            item.weight,
                             style: AppTextStyles.labelMedium.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,
@@ -344,7 +301,7 @@ class _CartScreenState extends State<CartScreen> {
 
                     // Price
                     Text(
-                      Formatters.formatCurrency(item['price'] as double),
+                      Formatters.formatCurrency(item.price),
                       style: AppTextStyles.titleSmall.copyWith(
                         color: AppColors.primary,
                         fontWeight: FontWeight.bold,
@@ -356,7 +313,7 @@ class _CartScreenState extends State<CartScreen> {
 
               // Remove button
               GestureDetector(
-                onTap: () => _removeItem(item['id'] as String),
+                onTap: () => _removeItem(item),
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
@@ -377,7 +334,7 @@ class _CartScreenState extends State<CartScreen> {
           Divider(height: 1, color: AppColors.divider),
           const SizedBox(height: 12),
 
-          // Quantity Controls with Leaf Display (matching product details)
+          // Quantity Controls with Leaf Display
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -391,7 +348,7 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                   ),
                   ...List.generate(
-                    quantity,
+                    item.quantity,
                     (index) => Padding(
                       padding: const EdgeInsets.only(right: 2),
                       child: Icon(
@@ -404,7 +361,7 @@ class _CartScreenState extends State<CartScreen> {
                 ],
               ),
 
-              // Quantity Control Buttons (styled like product details)
+              // Quantity Control Buttons
               Container(
                 decoration: BoxDecoration(
                   color: AppColors.primary,
@@ -415,11 +372,7 @@ class _CartScreenState extends State<CartScreen> {
                   children: [
                     // Minus button
                     GestureDetector(
-                      onTap: () => _updateQuantity(
-                        item['id'] as String,
-                        quantity - 1,
-                        sizeIndex,
-                      ),
+                      onTap: () => _updateQuantity(item, item.quantity - 1, sizeIndex),
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -445,7 +398,7 @@ class _CartScreenState extends State<CartScreen> {
                         mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(
-                          quantity,
+                          item.quantity,
                           (index) => Padding(
                             padding: EdgeInsets.only(left: index > 0 ? 2 : 0),
                             child: const Icon(
@@ -460,17 +413,13 @@ class _CartScreenState extends State<CartScreen> {
 
                     // Plus button
                     GestureDetector(
-                      onTap: quantity < maxQuantity
-                          ? () => _updateQuantity(
-                                item['id'] as String,
-                                quantity + 1,
-                                sizeIndex,
-                              )
+                      onTap: item.quantity < maxQuantity
+                          ? () => _updateQuantity(item, item.quantity + 1, sizeIndex)
                           : null,
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: quantity < maxQuantity
+                          color: item.quantity < maxQuantity
                               ? Colors.white.withAlpha(51)
                               : Colors.white.withAlpha(20),
                           borderRadius: const BorderRadius.only(
@@ -481,7 +430,7 @@ class _CartScreenState extends State<CartScreen> {
                         child: Icon(
                           Icons.add,
                           size: 18,
-                          color: quantity < maxQuantity
+                          color: item.quantity < maxQuantity
                               ? Colors.white
                               : Colors.white.withAlpha(100),
                         ),
@@ -494,7 +443,7 @@ class _CartScreenState extends State<CartScreen> {
           ),
 
           // Max quantity hint
-          if (quantity >= maxQuantity) ...[
+          if (item.quantity >= maxQuantity) ...[
             const SizedBox(height: 8),
             Row(
               children: [
@@ -519,6 +468,13 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildCouponSection(AppLocalizations l10n, double subtotal) {
+    String savingsText;
+    if (_appliedCoupon?.type == CouponType.freeDelivery) {
+      savingsText = 'Free Delivery Applied!';
+    } else {
+      savingsText = l10n.youSaved(_discountAmount.toStringAsFixed(0));
+    }
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
@@ -556,13 +512,13 @@ class _CartScreenState extends State<CartScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _appliedCoupon!,
+                        _appliedCoupon!.code,
                         style: AppTextStyles.titleSmall.copyWith(
                           color: AppColors.success,
                         ),
                       ),
                       Text(
-                        l10n.youSaved(_couponDiscount.toStringAsFixed(0)),
+                        savingsText,
                         style: AppTextStyles.bodySmall.copyWith(
                           color: AppColors.success,
                         ),
@@ -574,7 +530,7 @@ class _CartScreenState extends State<CartScreen> {
                   onPressed: () {
                     setState(() {
                       _appliedCoupon = null;
-                      _couponDiscount = 0;
+                      _discountAmount = 0;
                     });
                   },
                   child: Text(l10n.remove),
@@ -584,8 +540,9 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildBillDetails(AppLocalizations l10n, double subtotal, double deliveryCharge) {
-    final total = _getTotal(subtotal, deliveryCharge);
+  Widget _buildBillDetails(AppLocalizations l10n, double subtotal, double deliveryCharge, double discount) {
+    final total = subtotal - discount + deliveryCharge;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
@@ -601,8 +558,8 @@ class _CartScreenState extends State<CartScreen> {
           const SizedBox(height: 16),
 
           _buildBillRow(l10n.itemTotal, subtotal),
-          if (_couponDiscount > 0)
-            _buildBillRow(l10n.couponDiscount, -_couponDiscount, isDiscount: true),
+          if (discount > 0)
+            _buildBillRow(l10n.couponDiscount, -discount, isDiscount: true),
           _buildBillRow(
             l10n.delivery,
             deliveryCharge,
@@ -624,7 +581,7 @@ class _CartScreenState extends State<CartScreen> {
             ],
           ),
 
-          if (_couponDiscount > 0) ...[
+          if (discount > 0) ...[
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(8),
@@ -638,7 +595,7 @@ class _CartScreenState extends State<CartScreen> {
                   Icon(Icons.celebration, size: 16, color: AppColors.success),
                   const SizedBox(width: 8),
                   Text(
-                    l10n.savedWithCoupon(_couponDiscount.toStringAsFixed(0)),
+                    l10n.savedWithCoupon(discount.toStringAsFixed(0)),
                     style: AppTextStyles.labelMedium.copyWith(
                       color: AppColors.success,
                     ),
@@ -741,26 +698,22 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  void _updateQuantity(String itemId, int newQuantity, int sizeIndex) {
+  Future<void> _updateQuantity(CartItemModel item, int newQuantity, int sizeIndex) async {
     if (newQuantity < 1) {
-      _removeItem(itemId);
+      _removeItem(item);
       return;
     }
 
     final maxQuantity = _getMaxQuantity(sizeIndex);
     if (newQuantity > maxQuantity) {
-      return; // Don't exceed max quantity for this size
+      return;
     }
 
-    setState(() {
-      final index = _cartItemsState?.indexWhere((item) => item['id'] == itemId) ?? -1;
-      if (index != -1) {
-        _cartItemsState![index]['quantity'] = newQuantity;
-      }
-    });
+    await cartRepository.updateQuantity(item.productSlug, item.sizeCode, newQuantity);
+    setState(() {});
   }
 
-  void _removeItem(String itemId) {
+  void _removeItem(CartItemModel item) {
     final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
@@ -773,11 +726,10 @@ class _CartScreenState extends State<CartScreen> {
             child: Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              setState(() {
-                _cartItemsState?.removeWhere((item) => item['id'] == itemId);
-              });
+              await cartRepository.removeItem(item.productSlug, item.sizeCode);
+              setState(() {});
             },
             child: Text(
               l10n.remove,
@@ -790,26 +742,9 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   void _showCouponBottomSheet(AppLocalizations l10n, double subtotal) {
-    final coupons = [
-      {
-        'code': 'FIRST50',
-        'description': '50% off on first order',
-        'discount': 50.0,
-        'minOrder': 299.0,
-      },
-      {
-        'code': 'GONGURA20',
-        'description': '\u20B920 off on orders above \u20B9500',
-        'discount': 20.0,
-        'minOrder': 500.0,
-      },
-      {
-        'code': 'PICKLE100',
-        'description': '\u20B9100 off on orders above \u20B91000',
-        'discount': 100.0,
-        'minOrder': 1000.0,
-      },
-    ];
+    final couponController = TextEditingController();
+    String? errorMessage;
+    bool isValidating = false;
 
     showModalBottomSheet(
       context: context,
@@ -817,43 +752,138 @@ class _CartScreenState extends State<CartScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.applyCoupon, style: AppTextStyles.headlineSmall),
-            const SizedBox(height: 16),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (builderContext, setSheetState) {
+          Future<void> applyCouponCode(String code) async {
+            if (code.isEmpty) return;
 
-            // Coupon input
-            TextField(
-              decoration: InputDecoration(
-                hintText: l10n.enterCouponCode,
-                suffixIcon: TextButton(
-                  onPressed: () {
-                    // Apply entered coupon
-                  },
-                  child: Text(l10n.apply),
-                ),
-              ),
+            setSheetState(() {
+              isValidating = true;
+              errorMessage = null;
+            });
+
+            final result = await couponService.validateCoupon(
+              code: code,
+              orderAmount: subtotal,
+            );
+
+            if (!builderContext.mounted) return;
+
+            setSheetState(() {
+              isValidating = false;
+            });
+
+            if (result.isValid && result.coupon != null) {
+              Navigator.pop(builderContext);
+              setState(() {
+                _appliedCoupon = result.coupon;
+                _discountAmount = result.discountAmount;
+              });
+            } else {
+              setSheetState(() {
+                errorMessage = result.errorMessage ?? 'Invalid coupon';
+              });
+            }
+          }
+
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 24,
+              right: 24,
+              top: 24,
+              bottom: MediaQuery.of(builderContext).viewInsets.bottom + 24,
             ),
-            const SizedBox(height: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.applyCoupon, style: AppTextStyles.headlineSmall),
+                const SizedBox(height: 16),
 
-            Text(l10n.availableCoupons, style: AppTextStyles.titleSmall),
-            const SizedBox(height: 12),
+                // Coupon input
+                TextField(
+                  controller: couponController,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: InputDecoration(
+                    hintText: l10n.enterCouponCode,
+                    errorText: errorMessage,
+                    suffixIcon: isValidating
+                        ? const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : TextButton(
+                            onPressed: () => applyCouponCode(couponController.text),
+                            child: Text(l10n.apply),
+                          ),
+                  ),
+                  onSubmitted: applyCouponCode,
+                ),
+                const SizedBox(height: 24),
 
-            ...coupons.map((coupon) => _buildCouponCard(coupon, l10n, subtotal)),
+                Text(l10n.availableCoupons, style: AppTextStyles.titleSmall),
+                const SizedBox(height: 12),
 
-            const SizedBox(height: 16),
-          ],
-        ),
+                // Available Coupons from Firestore
+                FutureBuilder<List<CouponModel>>(
+                  future: couponService.getActiveCoupons(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+
+                    final coupons = snapshot.data ?? [];
+
+                    if (coupons.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          'No coupons available',
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      );
+                    }
+
+                    return Column(
+                      children: coupons.map((coupon) => _buildCouponCard(
+                        coupon,
+                        l10n,
+                        subtotal,
+                        onApply: () async {
+                          await applyCouponCode(coupon.code);
+                        },
+                      )).toList(),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 16),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildCouponCard(Map<String, dynamic> coupon, AppLocalizations l10n, double subtotal) {
-    final isApplicable = subtotal >= (coupon['minOrder'] as double);
+  Widget _buildCouponCard(
+    CouponModel coupon,
+    AppLocalizations l10n,
+    double subtotal, {
+    required VoidCallback onApply,
+  }) {
+    final isApplicable = subtotal >= coupon.minOrderAmount;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -882,7 +912,7 @@ class _CartScreenState extends State<CartScreen> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    coupon['code'] as String,
+                    coupon.code,
                     style: AppTextStyles.labelMedium.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -891,12 +921,12 @@ class _CartScreenState extends State<CartScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  coupon['description'] as String,
+                  coupon.description,
                   style: AppTextStyles.bodySmall,
                 ),
                 if (!isApplicable)
                   Text(
-                    l10n.addMoreToApply(((coupon['minOrder'] as double) - subtotal).toStringAsFixed(0)),
+                    l10n.addMoreToApply((coupon.minOrderAmount - subtotal).toStringAsFixed(0)),
                     style: AppTextStyles.labelSmall.copyWith(
                       color: AppColors.error,
                     ),
@@ -906,13 +936,7 @@ class _CartScreenState extends State<CartScreen> {
           ),
           if (isApplicable)
             TextButton(
-              onPressed: () {
-                setState(() {
-                  _appliedCoupon = coupon['code'] as String;
-                  _couponDiscount = coupon['discount'] as double;
-                });
-                Navigator.pop(context);
-              },
+              onPressed: onApply,
               child: Text(l10n.apply),
             ),
         ],

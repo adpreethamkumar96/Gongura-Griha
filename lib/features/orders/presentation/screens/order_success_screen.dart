@@ -10,7 +10,12 @@ import '../../../../shared/widgets/buttons/primary_button.dart';
 ///
 /// Displayed after successful order placement.
 class OrderSuccessScreen extends StatefulWidget {
-  const OrderSuccessScreen({super.key});
+  final String? orderNumber;
+
+  const OrderSuccessScreen({
+    super.key,
+    this.orderNumber,
+  });
 
   @override
   State<OrderSuccessScreen> createState() => _OrderSuccessScreenState();
@@ -22,8 +27,9 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen>
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
 
-  // Mock order data
-  final String _orderNumber = 'GG${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
+  String get _orderNumber =>
+      widget.orderNumber ??
+      'GG${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
   final String _estimatedDelivery = 'Tomorrow, 10 AM - 2 PM';
 
   @override
@@ -162,7 +168,7 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen>
                         _buildDetailRow(
                           icon: Icons.payment,
                           label: 'Payment',
-                          value: 'UPI',
+                          value: 'Confirmed',
                           trailing: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
@@ -173,7 +179,7 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen>
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              'Paid',
+                              'Confirmed',
                               style: AppTextStyles.labelSmall.copyWith(
                                 color: AppColors.success,
                               ),

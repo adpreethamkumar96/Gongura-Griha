@@ -1,17 +1,23 @@
+import 'dart:async';
+
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_typography.dart';
+import '../../../../core/data/models/product_inventory_model.dart';
+import '../../../../core/data/models/wishlist_item_model.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/cards/product_card.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
 
 /// Home Screen
 ///
-/// Main screen showing categories, banners, and products.
+/// Main screen showing categories, banners, and products from Firestore.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -21,6 +27,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentBannerIndex = 0;
+  List<ProductInventoryModel> _featuredProducts = [];
+  bool _isLoading = true;
+  StreamSubscription? _inventorySubscription;
+  StreamSubscription<BoxEvent>? _cartSubscription;
+  int _cartItemCount = 0;
+  String? _defaultAddressDisplay;
 
   List<Map<String, dynamic>> _getCategories(AppLocalizations l10n) => [
     {'name': l10n.pachadi, 'icon': Icons.rice_bowl, 'key': 'Pachadi'},
@@ -49,32 +61,108 @@ class _HomeScreenState extends State<HomeScreen> {
     },
   ];
 
-  List<Map<String, dynamic>> _getFeaturedProducts(AppLocalizations l10n) => [
-    {
-      'name': l10n.traditionalGonguraPachadi,
-      'image': 'assets/images/GonguraPickle.png',
-      'price': 199.0,
-      'isVeg': true,
-      'slug': 'traditional-gongura-pachadi',
-      'isAsset': true,
-    },
-    {
-      'name': l10n.classicGonguraChutney,
-      'image': 'assets/images/GonguraChutney.png',
-      'price': 149.0,
-      'isVeg': true,
-      'slug': 'classic-gongura-chutney',
-      'isAsset': true,
-    },
-    {
-      'name': l10n.spicyGonguraPodi,
-      'image': 'assets/images/GonguraPowder.png',
-      'price': 139.0,
-      'isVeg': true,
-      'slug': 'spicy-gongura-podi',
-      'isAsset': true,
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+    _listenToCart();
+    _loadDefaultAddress();
+  }
+
+  Future<void> _loadDefaultAddress() async {
+    final userId = authService.currentUser?.uid;
+    if (userId == null) return;
+
+    try {
+      final defaultAddress = await addressService.getDefaultAddress(userId);
+      if (mounted && defaultAddress != null) {
+        setState(() {
+          _defaultAddressDisplay = '${defaultAddress.city}, ${defaultAddress.pincode}';
+        });
+      }
+    } catch (e) {
+      // Silently fail - will show default placeholder
+    }
+  }
+
+  @override
+  void dispose() {
+    _inventorySubscription?.cancel();
+    _cartSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _loadProducts() {
+    // First, check if we already have cached inventory data
+    final cachedProducts = inventoryService.cachedInventory;
+    if (cachedProducts.isNotEmpty) {
+      _featuredProducts = cachedProducts.values
+          .where((p) => p.isActive && p.isInStock)
+          .take(6)
+          .toList();
+      _isLoading = false;
+    }
+
+    // Listen to inventory stream for real-time updates
+    _inventorySubscription = inventoryService.inventoryStream.listen(
+      (productsMap) {
+        if (mounted) {
+          setState(() {
+            // Get featured products (active, in stock, limit to 6)
+            _featuredProducts = productsMap.values
+                .where((p) => p.isActive && p.isInStock)
+                .take(6)
+                .toList();
+            _isLoading = false;
+          });
+        }
+      },
+      onError: (error) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      },
+    );
+  }
+
+  void _listenToCart() {
+    // Update cart badge count
+    _cartItemCount = cartRepository.itemCount;
+    _cartSubscription = cartRepository.watch().listen((_) {
+      if (mounted) {
+        setState(() {
+          _cartItemCount = cartRepository.itemCount;
+        });
+      }
+    });
+  }
+
+  void _toggleWishlist(ProductInventoryModel product) async {
+    final item = WishlistItemModel(
+      productSlug: product.productSlug,
+      productName: product.productName,
+      productImage: product.productImage,
+      basePrice: product.basePrice,
+      category: product.category,
+      isVeg: product.isVeg,
+      addedAt: DateTime.now(),
+    );
+
+    final added = await wishlistRepository.toggleItem(item);
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          added
+              ? '${product.productName} added to wishlist'
+              : '${product.productName} removed from wishlist',
+        ),
+        backgroundColor: AppColors.primary,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Hyderabad, 500001',
+                      _defaultAddressDisplay ?? 'Add Address',
                       style: AppTypography.labelLarge,
                     ),
                     const Icon(
@@ -165,7 +253,8 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             onPressed: () => context.push(AppRoutes.cart),
             icon: Badge(
-              label: const Text('2'),
+              isLabelVisible: _cartItemCount > 0,
+              label: Text('$_cartItemCount'),
               child: const Icon(Icons.shopping_cart_outlined),
             ),
           ),
@@ -312,7 +401,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: GestureDetector(
                   onTap: () {
                     context.push(
-                      '${AppRoutes.productList}?category=${category['name']}',
+                      '${AppRoutes.productList}?category=${category['key']}',
                     );
                   },
                   child: Column(
@@ -378,7 +467,43 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildProductsGrid(AppLocalizations l10n) {
-    final featuredProducts = _getFeaturedProducts(l10n);
+    if (_isLoading) {
+      return const SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(32),
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+    }
+
+    if (_featuredProducts.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.inventory_2_outlined,
+                  size: 64,
+                  color: AppColors.textTertiary,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No products available',
+                  style: AppTypography.bodyLarge.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 1,
@@ -388,28 +513,27 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          final product = featuredProducts[index];
+          final product = _featuredProducts[index];
+          final isWishlisted = wishlistRepository.isInWishlist(product.productSlug);
+          final isNetworkImage = product.productImage.startsWith('http');
+
           return ProductCard(
-            name: product['name'] as String,
-            imageUrl: product['image'] as String,
-            price: product['price'] as double,
-            originalPrice: product['originalPrice'] as double?,
-            rating: product['rating'] as double?,
-            reviewCount: product['reviews'] as int?,
-            isVeg: product['isVeg'] as bool,
-            isAsset: product['isAsset'] as bool? ?? false,
+            name: product.productName,
+            imageUrl: product.productImage,
+            price: product.basePrice,
+            isVeg: product.isVeg,
+            isAsset: !isNetworkImage,
+            isWishlisted: isWishlisted,
             onTap: () {
-              context.push(AppRoutes.getProductDetailRoute(product['slug'] as String));
+              context.push(AppRoutes.getProductDetailRoute(product.productSlug));
             },
             onAddToCart: () {
-              context.push(AppRoutes.getProductDetailRoute(product['slug'] as String));
+              context.push(AppRoutes.getProductDetailRoute(product.productSlug));
             },
-            onWishlistToggle: () {
-              // TODO: Implement wishlist toggle
-            },
+            onWishlistToggle: () => _toggleWishlist(product),
           );
         },
-        childCount: featuredProducts.length,
+        childCount: _featuredProducts.length,
       ),
     );
   }

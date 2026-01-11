@@ -1,0 +1,128 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Helper function to check if request data has required fields
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // ============ Products Collection ============
+    // Public read, inventory updates allowed for authenticated users (for checkout)
+    match /products/{productId} {
+      allow read: if true;
+      // Allow stock updates by authenticated users (for inventory reservation during checkout)
+      // NOTE: In production, move this to a Cloud Function for better security
+      allow update: if isAuthenticated();
+      allow create, delete: if false;
+    }
+
+    // ============ Orders Collection ============
+    // Users can only read/create their own orders
+    match /orders/{orderId} {
+      // Allow read if user owns the order
+      allow read: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
+
+      // Allow create if user is creating their own order
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid
+        && hasRequiredFields(['userId', 'items', 'total', 'status']);
+
+      // Allow update only for cancellation by owner (before shipping)
+      allow update: if isAuthenticated()
+        && resource.data.userId == request.auth.uid
+        && resource.data.status in ['pending', 'confirmed', 'processing']
+        && request.resource.data.status == 'cancelled';
+
+      // No delete allowed
+      allow delete: if false;
+    }
+
+    // ============ Users Collection ============
+    // Users can only access their own profile
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      // User's addresses subcollection
+      match /addresses/{addressId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // User's wishlist subcollection
+      match /wishlist/{productSlug} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // User's used coupons subcollection
+      match /usedCoupons/{couponId} {
+        allow read: if isOwner(userId);
+        // Allow increment of usage count
+        allow write: if isOwner(userId);
+      }
+    }
+
+    // ============ Addresses Collection (top-level) ============
+    // Users can only access addresses with their userId
+    match /addresses/{addressId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // ============ Notifications Collection ============
+    // Users can only read their own notifications
+    match /notifications/{notificationId} {
+      // Allow read if user owns the notification
+      allow read: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
+
+      // Allow update only for marking as read
+      allow update: if isAuthenticated()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
+
+      // No create/delete from client (created by backend/cloud functions)
+      allow create, delete: if false;
+    }
+
+    // ============ Coupons Collection ============
+    // Public read for validation, controlled write for usage tracking
+    match /coupons/{couponId} {
+      allow read: if true;
+
+      // Allow increment of usedCount only
+      allow update: if isAuthenticated()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['usedCount'])
+        && request.resource.data.usedCount == resource.data.usedCount + 1;
+
+      // No create/delete from client
+      allow create, delete: if false;
+    }
+
+    // ============ Wishlist Collection (if using separate collection) ============
+    match /wishlists/{userId} {
+      allow read, write: if isOwner(userId);
+
+      match /items/{itemId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // ============ Default Deny ============
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

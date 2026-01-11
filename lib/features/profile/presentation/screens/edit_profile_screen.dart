@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/data/models/user_profile_model.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../shared/widgets/buttons/primary_button.dart';
 import '../../../../shared/widgets/inputs/custom_text_field.dart';
 
@@ -18,11 +23,45 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController(text: 'Ramesh Kumar');
-  final _emailController = TextEditingController(text: 'ramesh.kumar@email.com');
-  final _phoneController = TextEditingController(text: '9876543210');
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _imagePicker = ImagePicker();
 
-  bool _isLoading = false;
+  bool _isLoading = true;
+  bool _isSaving = false;
+  bool _isUploadingPhoto = false;
+  String? _photoUrl;
+  File? _selectedImage;
+  UserProfileModel? _profile;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final user = authService.currentUser;
+    if (user == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    // Load from Firestore
+    final profile = await userProfileService.getProfile(user.uid);
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        _profile = profile;
+        _nameController.text = profile?.displayName ?? user.displayName ?? '';
+        _emailController.text = profile?.email ?? user.email ?? '';
+        _phoneController.text = profile?.phoneNumber ?? user.phoneNumber ?? '';
+        _photoUrl = profile?.photoUrl ?? user.photoURL;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -39,89 +78,116 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       appBar: AppBar(
         title: const Text('Edit Profile'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              // Profile Picture
-              _buildProfilePicture(),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    // Profile Picture
+                    _buildProfilePicture(),
 
-              const SizedBox(height: 32),
+                    const SizedBox(height: 32),
 
-              // Name Field
-              CustomTextField(
-                controller: _nameController,
-                label: 'Full Name',
-                prefixIcon: Icons.person_outline,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your name';
-                  }
-                  return null;
-                },
+                    // Name Field
+                    CustomTextField(
+                      controller: _nameController,
+                      label: 'Full Name',
+                      prefixIcon: Icons.person_outline,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your name';
+                        }
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Email Field
+                    CustomTextField(
+                      controller: _emailController,
+                      label: 'Email Address',
+                      prefixIcon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value != null && value.isNotEmpty) {
+                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                            return 'Please enter a valid email';
+                          }
+                        }
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Phone Field (read-only)
+                    CustomTextField(
+                      controller: _phoneController,
+                      label: 'Phone Number',
+                      prefixIcon: Icons.phone_outlined,
+                      prefixText: '+91 ',
+                      enabled: false,
+                      helperText: 'Phone number cannot be changed',
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // Save Button
+                    PrimaryButton(
+                      text: 'Save Changes',
+                      isLoading: _isSaving,
+                      onPressed: _saveProfile,
+                    ),
+                  ],
+                ),
               ),
-
-              const SizedBox(height: 16),
-
-              // Email Field
-              CustomTextField(
-                controller: _emailController,
-                label: 'Email Address',
-                prefixIcon: Icons.email_outlined,
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value != null && value.isNotEmpty) {
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                      return 'Please enter a valid email';
-                    }
-                  }
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              // Phone Field (read-only)
-              CustomTextField(
-                controller: _phoneController,
-                label: 'Phone Number',
-                prefixIcon: Icons.phone_outlined,
-                prefixText: '+91 ',
-                enabled: false,
-                helperText: 'Phone number cannot be changed',
-              ),
-
-              const SizedBox(height: 32),
-
-              // Save Button
-              PrimaryButton(
-                text: 'Save Changes',
-                isLoading: _isLoading,
-                onPressed: _saveProfile,
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
   Widget _buildProfilePicture() {
+    Widget avatarContent;
+
+    if (_isUploadingPhoto) {
+      avatarContent = const CircularProgressIndicator(color: Colors.white);
+    } else if (_selectedImage != null) {
+      avatarContent = ClipOval(
+        child: Image.file(
+          _selectedImage!,
+          width: 120,
+          height: 120,
+          fit: BoxFit.cover,
+        ),
+      );
+    } else if (_photoUrl != null && _photoUrl!.isNotEmpty) {
+      avatarContent = ClipOval(
+        child: Image.network(
+          _photoUrl!,
+          width: 120,
+          height: 120,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _buildInitialAvatar(),
+        ),
+      );
+    } else {
+      avatarContent = _buildInitialAvatar();
+    }
+
     return Center(
       child: Stack(
         children: [
-          CircleAvatar(
-            radius: 60,
-            backgroundColor: AppColors.primary.withAlpha(26),
-            child: Text(
-              'R',
-              style: AppTextStyles.headlineLarge.copyWith(
-                color: AppColors.primary,
-                fontSize: 48,
-              ),
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.primary.withAlpha(26),
             ),
+            child: avatarContent,
           ),
           Positioned(
             bottom: 0,
@@ -151,6 +217,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  Widget _buildInitialAvatar() {
+    final name = _nameController.text.isNotEmpty
+        ? _nameController.text
+        : 'U';
+    return Center(
+      child: Text(
+        name.substring(0, 1).toUpperCase(),
+        style: AppTextStyles.headlineLarge.copyWith(
+          color: AppColors.primary,
+          fontSize: 48,
+        ),
+      ),
+    );
+  }
+
   void _showImagePickerOptions() {
     showModalBottomSheet(
       context: context,
@@ -168,7 +249,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 title: const Text('Take Photo'),
                 onTap: () {
                   Navigator.pop(context);
-                  // TODO: Implement camera capture
+                  _pickImage(ImageSource.camera);
                 },
               ),
               ListTile(
@@ -176,20 +257,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 title: const Text('Choose from Gallery'),
                 onTap: () {
                   Navigator.pop(context);
-                  // TODO: Implement gallery picker
+                  _pickImage(ImageSource.gallery);
                 },
               ),
-              ListTile(
-                leading: Icon(Icons.delete, color: AppColors.error),
-                title: Text(
-                  'Remove Photo',
-                  style: TextStyle(color: AppColors.error),
+              if (_photoUrl != null || _selectedImage != null)
+                ListTile(
+                  leading: Icon(Icons.delete, color: AppColors.error),
+                  title: Text(
+                    'Remove Photo',
+                    style: TextStyle(color: AppColors.error),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _removePhoto();
+                  },
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                  // TODO: Implement remove photo
-                },
-              ),
             ],
           ),
         ),
@@ -197,24 +279,162 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 80,
+      );
+
+      if (pickedFile == null) return;
+
+      final imageFile = File(pickedFile.path);
+      setState(() {
+        _selectedImage = imageFile;
+      });
+
+      // Upload immediately
+      await _uploadPhoto(imageFile);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick image: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _uploadPhoto(File imageFile) async {
+    final user = authService.currentUser;
+    if (user == null) return;
+
+    setState(() => _isUploadingPhoto = true);
+
+    try {
+      final downloadUrl = await userProfileService.uploadProfilePicture(
+        user.uid,
+        imageFile,
+      );
+
+      if (mounted) {
+        setState(() {
+          _isUploadingPhoto = false;
+          if (downloadUrl != null) {
+            _photoUrl = downloadUrl;
+          }
+        });
+
+        if (downloadUrl != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Photo updated successfully'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isUploadingPhoto = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to upload photo: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _removePhoto() async {
+    final user = authService.currentUser;
+    if (user == null) return;
+
+    setState(() => _isUploadingPhoto = true);
+
+    try {
+      final success = await userProfileService.deleteProfilePicture(user.uid);
+
+      if (mounted) {
+        setState(() {
+          _isUploadingPhoto = false;
+          if (success) {
+            _photoUrl = null;
+            _selectedImage = null;
+          }
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success ? 'Photo removed' : 'Failed to remove photo'),
+            backgroundColor: success ? AppColors.success : AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isUploadingPhoto = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to remove photo: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+    final user = authService.currentUser;
+    if (user == null) return;
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 1));
+    setState(() => _isSaving = true);
 
-    setState(() => _isLoading = false);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile updated successfully'),
-          backgroundColor: AppColors.success,
-        ),
+    try {
+      final success = await userProfileService.updateProfile(
+        uid: user.uid,
+        displayName: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        phoneNumber: _phoneController.text.trim(),
       );
-      context.pop();
+
+      if (mounted) {
+        setState(() => _isSaving = false);
+
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Profile updated successfully'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+          context.pop();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to update profile'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 }

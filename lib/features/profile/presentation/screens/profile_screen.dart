@@ -4,25 +4,62 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/data/models/user_profile_model.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// Profile Screen
 ///
 /// Displays user profile information and settings options.
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  UserProfileModel? _profile;
+  bool _isLoading = true;
+  int _addressCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final user = authService.currentUser;
+    if (user != null) {
+      // Load profile and address count in parallel
+      final profileFuture = userProfileService.getProfile(user.uid);
+      final addressesFuture = addressService.getUserAddresses(user.uid);
+
+      final profile = await profileFuture;
+      final addresses = await addressesFuture;
+
+      if (mounted) {
+        setState(() {
+          _profile = profile;
+          _addressCount = addresses.length;
+          _isLoading = false;
+        });
+      }
+    } else {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    // Mock user data
-    const user = {
-      'name': 'Ramesh Kumar',
-      'phone': '+91 98765 43210',
-      'email': 'ramesh.kumar@email.com',
-      'avatar': null,
-    };
+    // Get user data from AuthService and Firestore profile
+    final currentUser = authService.currentUser;
+    final userName = _profile?.displayName ?? currentUser?.displayName ?? 'Guest User';
+    final userPhone = _profile?.phoneNumber ?? currentUser?.phoneNumber ?? 'Not logged in';
+    final photoUrl = _profile?.photoUrl ?? currentUser?.photoURL;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -47,24 +84,29 @@ class ProfileScreen extends StatelessWidget {
                       CircleAvatar(
                         radius: 45,
                         backgroundColor: Colors.white,
-                        child: Text(
-                          user['name']!.toString().substring(0, 1),
-                          style: AppTextStyles.headlineLarge.copyWith(
-                            color: AppColors.primary,
-                          ),
-                        ),
+                        backgroundImage: photoUrl != null && photoUrl.isNotEmpty
+                            ? NetworkImage(photoUrl)
+                            : null,
+                        child: photoUrl == null || photoUrl.isEmpty
+                            ? Text(
+                                userName.isNotEmpty ? userName.substring(0, 1) : 'G',
+                                style: AppTextStyles.headlineLarge.copyWith(
+                                  color: AppColors.primary,
+                                ),
+                              )
+                            : null,
                       ),
                       const SizedBox(height: 12),
                       // Name
                       Text(
-                        user['name'] as String,
+                        userName,
                         style: AppTextStyles.titleLarge.copyWith(
                           color: Colors.white,
                         ),
                       ),
                       // Phone
                       Text(
-                        user['phone'] as String,
+                        userPhone,
                         style: AppTextStyles.bodyMedium.copyWith(
                           color: Colors.white70,
                         ),
@@ -100,8 +142,14 @@ class ProfileScreen extends StatelessWidget {
                     _MenuItem(
                       icon: Icons.location_on_outlined,
                       title: l10n.savedAddresses,
-                      subtitle: l10n.addressesCount(2),
-                      onTap: () => context.push(AppRoutes.addresses),
+                      subtitle: _addressCount > 0
+                          ? l10n.addressesCount(_addressCount)
+                          : 'No addresses saved',
+                      onTap: () async {
+                        await context.push(AppRoutes.addresses);
+                        // Refresh address count when returning
+                        _loadProfile();
+                      },
                     ),
                     _MenuItem(
                       icon: Icons.payment,
@@ -275,18 +323,27 @@ class ProfileScreen extends StatelessWidget {
   void _showLogoutDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(l10n.logout),
         content: Text(l10n.logoutConfirm),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.go(AppRoutes.login);
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+
+              // Sign out from Firebase
+              await authService.signOut();
+
+              // Clear local data
+              await cartRepository.clearCart();
+
+              if (context.mounted) {
+                context.go(AppRoutes.login);
+              }
             },
             child: Text(
               l10n.yesLogout,

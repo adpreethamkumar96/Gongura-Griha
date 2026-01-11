@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/data/models/address_model.dart';
+import '../../../../core/di/injection.dart';
 
 /// Address List Screen
 ///
@@ -16,33 +20,39 @@ class AddressListScreen extends StatefulWidget {
 }
 
 class _AddressListScreenState extends State<AddressListScreen> {
-  // Mock addresses data
-  final List<Map<String, dynamic>> _addresses = [
-    {
-      'id': '1',
-      'type': 'Home',
-      'name': 'Ramesh Kumar',
-      'phone': '+91 98765 43210',
-      'address': '123, Green Valley Apartments',
-      'landmark': 'Near City Mall',
-      'city': 'Hyderabad',
-      'state': 'Telangana',
-      'pincode': '500001',
-      'isDefault': true,
-    },
-    {
-      'id': '2',
-      'type': 'Office',
-      'name': 'Ramesh Kumar',
-      'phone': '+91 98765 43210',
-      'address': '456, Tech Park Building, 5th Floor',
-      'landmark': 'HITEC City',
-      'city': 'Hyderabad',
-      'state': 'Telangana',
-      'pincode': '500081',
-      'isDefault': false,
-    },
-  ];
+  List<AddressModel> _addresses = [];
+  bool _isLoading = true;
+  StreamSubscription? _addressSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAddresses();
+  }
+
+  @override
+  void dispose() {
+    _addressSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _loadAddresses() {
+    final userId = authService.currentUser?.uid;
+    if (userId == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    _addressSubscription =
+        addressService.getUserAddressesStream(userId).listen((addresses) {
+      if (mounted) {
+        setState(() {
+          _addresses = addresses;
+          _isLoading = false;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +61,11 @@ class _AddressListScreenState extends State<AddressListScreen> {
       appBar: AppBar(
         title: const Text('Saved Addresses'),
       ),
-      body: _addresses.isEmpty ? _buildEmptyState() : _buildAddressList(),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _addresses.isEmpty
+              ? _buildEmptyState()
+              : _buildAddressList(),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.addAddress),
         backgroundColor: AppColors.primary,
@@ -104,8 +118,8 @@ class _AddressListScreenState extends State<AddressListScreen> {
     );
   }
 
-  Widget _buildAddressCard(Map<String, dynamic> address) {
-    final isDefault = address['isDefault'] as bool;
+  Widget _buildAddressCard(AddressModel address) {
+    final isDefault = address.isDefault;
 
     return Container(
       decoration: BoxDecoration(
@@ -138,23 +152,22 @@ class _AddressListScreenState extends State<AddressListScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: _getTypeColor(address['type'] as String)
-                            .withAlpha(26),
+                        color: _getTypeColor(address.type).withAlpha(26),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            _getTypeIcon(address['type'] as String),
+                            _getTypeIcon(address.type),
                             size: 14,
-                            color: _getTypeColor(address['type'] as String),
+                            color: _getTypeColor(address.type),
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            address['type'] as String,
+                            address.type.displayName,
                             style: AppTextStyles.labelSmall.copyWith(
-                              color: _getTypeColor(address['type'] as String),
+                              color: _getTypeColor(address.type),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -231,7 +244,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
 
                 // Name
                 Text(
-                  address['name'] as String,
+                  address.name,
                   style: AppTextStyles.titleSmall,
                 ),
 
@@ -239,7 +252,9 @@ class _AddressListScreenState extends State<AddressListScreen> {
 
                 // Address
                 Text(
-                  '${address['address']}, ${address['landmark']}',
+                  address.landmark.isNotEmpty
+                      ? '${address.address}, ${address.landmark}'
+                      : address.address,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -249,7 +264,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
 
                 // City, State, Pincode
                 Text(
-                  '${address['city']}, ${address['state']} - ${address['pincode']}',
+                  '${address.city}, ${address.state} - ${address.pincode}',
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -267,7 +282,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      address['phone'] as String,
+                      address.phone,
                       style: AppTextStyles.bodySmall.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -282,35 +297,35 @@ class _AddressListScreenState extends State<AddressListScreen> {
     );
   }
 
-  Color _getTypeColor(String type) {
-    switch (type.toLowerCase()) {
-      case 'home':
+  Color _getTypeColor(AddressType type) {
+    switch (type) {
+      case AddressType.home:
         return AppColors.primary;
-      case 'office':
+      case AddressType.office:
         return AppColors.info;
-      default:
+      case AddressType.other:
         return AppColors.textSecondary;
     }
   }
 
-  IconData _getTypeIcon(String type) {
-    switch (type.toLowerCase()) {
-      case 'home':
+  IconData _getTypeIcon(AddressType type) {
+    switch (type) {
+      case AddressType.home:
         return Icons.home_outlined;
-      case 'office':
+      case AddressType.office:
         return Icons.business_outlined;
-      default:
+      case AddressType.other:
         return Icons.location_on_outlined;
     }
   }
 
-  void _handleMenuAction(String action, Map<String, dynamic> address) {
+  void _handleMenuAction(String action, AddressModel address) {
     switch (action) {
       case 'edit':
-        context.push(AppRoutes.getEditAddressRoute(address['id'] as String));
+        context.push(AppRoutes.getEditAddressRoute(address.id));
         break;
       case 'default':
-        _setAsDefault(address['id'] as String);
+        _setAsDefault(address.id);
         break;
       case 'delete':
         _showDeleteConfirmation(address);
@@ -318,18 +333,19 @@ class _AddressListScreenState extends State<AddressListScreen> {
     }
   }
 
-  void _setAsDefault(String addressId) {
-    setState(() {
-      for (var addr in _addresses) {
-        addr['isDefault'] = addr['id'] == addressId;
-      }
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Default address updated')),
-    );
+  Future<void> _setAsDefault(String addressId) async {
+    final userId = authService.currentUser?.uid;
+    if (userId == null) return;
+
+    final success = await addressService.setDefaultAddress(userId, addressId);
+    if (mounted && success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Default address updated')),
+      );
+    }
   }
 
-  void _showDeleteConfirmation(Map<String, dynamic> address) {
+  void _showDeleteConfirmation(AddressModel address) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -343,7 +359,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              _deleteAddress(address['id'] as String);
+              _deleteAddress(address.id);
             },
             child: Text(
               'Delete',
@@ -355,12 +371,12 @@ class _AddressListScreenState extends State<AddressListScreen> {
     );
   }
 
-  void _deleteAddress(String addressId) {
-    setState(() {
-      _addresses.removeWhere((addr) => addr['id'] == addressId);
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Address deleted')),
-    );
+  Future<void> _deleteAddress(String addressId) async {
+    final success = await addressService.deleteAddress(addressId);
+    if (mounted && success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Address deleted')),
+      );
+    }
   }
 }

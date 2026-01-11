@@ -1,16 +1,21 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/data/models/wishlist_item_model.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/buttons/primary_button.dart';
 
 /// Wishlist Screen
 ///
-/// Displays user's saved/wishlisted products.
+/// Displays user's saved/wishlisted products with real-time updates.
 class WishlistScreen extends StatefulWidget {
   const WishlistScreen({super.key});
 
@@ -19,63 +24,83 @@ class WishlistScreen extends StatefulWidget {
 }
 
 class _WishlistScreenState extends State<WishlistScreen> {
-  // Track which items are in wishlist by their slugs
-  final Set<String> _wishlistItemSlugs = {
-    'traditional-gongura-pachadi',
-    'classic-gongura-chutney',
-    'spicy-gongura-podi',
-  };
+  StreamSubscription<BoxEvent>? _wishlistSubscription;
+  List<WishlistItemModel> _wishlistItems = [];
 
-  // Generate localized wishlist items with asset images
-  List<Map<String, dynamic>> _getWishlistItems(AppLocalizations l10n) {
-    final allProducts = [
-      {
-        'id': '1',
-        'name': l10n.traditionalGonguraPachadi,
-        'price': 199.0,
-        'image': 'assets/images/GonguraPickle.png',
-        'isVeg': true,
-        'inStock': true,
-        'slug': 'traditional-gongura-pachadi',
-        'category': l10n.pachadi,
-      },
-      {
-        'id': '2',
-        'name': l10n.classicGonguraChutney,
-        'price': 149.0,
-        'image': 'assets/images/GonguraChutney.png',
-        'isVeg': true,
-        'inStock': true,
-        'slug': 'classic-gongura-chutney',
-        'category': l10n.chutney,
-      },
-      {
-        'id': '3',
-        'name': l10n.spicyGonguraPodi,
-        'price': 129.0,
-        'image': 'assets/images/GonguraPowder.png',
-        'isVeg': true,
-        'inStock': true,
-        'slug': 'spicy-gongura-podi',
-        'category': l10n.powder,
-      },
-    ];
-    return allProducts.where((p) => _wishlistItemSlugs.contains(p['slug'])).toList();
+  @override
+  void initState() {
+    super.initState();
+    _loadWishlist();
+    _listenToChanges();
+  }
+
+  void _loadWishlist() {
+    setState(() {
+      _wishlistItems = wishlistRepository.getItems();
+    });
+  }
+
+  void _listenToChanges() {
+    // Listen to local Hive changes (covers both local and cloud-synced updates)
+    _wishlistSubscription = wishlistRepository.watch().listen((_) {
+      if (mounted) {
+        _loadWishlist();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _wishlistSubscription?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final wishlistItems = _getWishlistItems(l10n);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('${l10n.wishlist} (${wishlistItems.length})'),
+        title: Text('${l10n.wishlist} (${_wishlistItems.length})'),
+        actions: [
+          if (_wishlistItems.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () => _showClearConfirmation(l10n),
+              tooltip: 'Clear wishlist',
+            ),
+        ],
       ),
-      body: wishlistItems.isEmpty
+      body: _wishlistItems.isEmpty
           ? _buildEmptyState(l10n)
-          : _buildWishlistGrid(wishlistItems, l10n),
+          : _buildWishlistGrid(_wishlistItems, l10n),
+    );
+  }
+
+  void _showClearConfirmation(AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear Wishlist'),
+        content: const Text('Are you sure you want to remove all items from your wishlist?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await wishlistRepository.clearWishlist();
+            },
+            child: Text(
+              'Clear All',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -113,7 +138,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
     );
   }
 
-  Widget _buildWishlistGrid(List<Map<String, dynamic>> wishlistItems, AppLocalizations l10n) {
+  Widget _buildWishlistGrid(List<WishlistItemModel> wishlistItems, AppLocalizations l10n) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: wishlistItems.length,
@@ -127,7 +152,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
     );
   }
 
-  Widget _buildWishlistCard(Map<String, dynamic> item, AppLocalizations l10n) {
+  Widget _buildWishlistCard(WishlistItemModel item, AppLocalizations l10n) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -142,7 +167,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
       ),
       child: InkWell(
         onTap: () {
-          context.push(AppRoutes.getProductDetailRoute(item['slug'] as String));
+          context.push(AppRoutes.getProductDetailRoute(item.productSlug));
         },
         borderRadius: BorderRadius.circular(20),
         child: Column(
@@ -167,17 +192,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                         ],
                       ),
                     ),
-                    child: Image.asset(
-                      item['image'] as String,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Center(
-                        child: Icon(
-                          Icons.eco,
-                          size: 48,
-                          color: AppColors.primary.withAlpha(60),
-                        ),
-                      ),
-                    ),
+                    child: _buildProductImage(item.productImage),
                   ),
                 ),
                 // Wishlist Button
@@ -185,14 +200,12 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   top: 12,
                   right: 12,
                   child: GestureDetector(
-                    onTap: () {
-                      final slug = item['slug'] as String;
-                      setState(() {
-                        _wishlistItemSlugs.remove(slug);
-                      });
+                    onTap: () async {
+                      await wishlistRepository.removeItem(item.productSlug);
+                      if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('${item['name']} ${l10n.removedFromWishlist}'),
+                          content: Text('${item.productName} ${l10n.removedFromWishlist}'),
                           backgroundColor: AppColors.primary,
                         ),
                       );
@@ -245,7 +258,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          item['category'] as String,
+                          item.category,
                           style: AppTextStyles.labelSmall.copyWith(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600,
@@ -269,7 +282,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          item['name'] as String,
+                          item.productName,
                           style: AppTextStyles.titleMedium.copyWith(
                             fontWeight: FontWeight.w700,
                             color: const Color(0xFF1B5E20),
@@ -281,7 +294,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                         Row(
                           children: [
                             Text(
-                              Formatters.formatCurrency(item['price'] as double),
+                              Formatters.formatCurrency(item.basePrice),
                               style: AppTextStyles.titleLarge.copyWith(
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.primary,
@@ -303,7 +316,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   // Add to Cart Button - navigates to product details
                   GestureDetector(
                     onTap: () {
-                      context.push(AppRoutes.getProductDetailRoute(item['slug'] as String));
+                      context.push(AppRoutes.getProductDetailRoute(item.productSlug));
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -345,5 +358,34 @@ class _WishlistScreenState extends State<WishlistScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildProductImage(String imagePath) {
+    // Check if it's a network URL or asset path
+    if (imagePath.startsWith('http')) {
+      return Image.network(
+        imagePath,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Center(
+          child: Icon(
+            Icons.eco,
+            size: 48,
+            color: AppColors.primary.withAlpha(60),
+          ),
+        ),
+      );
+    } else {
+      return Image.asset(
+        imagePath,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Center(
+          child: Icon(
+            Icons.eco,
+            size: 48,
+            color: AppColors.primary.withAlpha(60),
+          ),
+        ),
+      );
+    }
   }
 }

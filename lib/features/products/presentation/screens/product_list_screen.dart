@@ -1,15 +1,20 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/data/models/product_inventory_model.dart';
+import '../../../../core/data/models/wishlist_item_model.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/cards/product_card.dart';
 
 /// Product List Screen
 ///
-/// Displays a grid of products with filtering and sorting options.
+/// Displays a grid of products from Firestore with filtering and sorting options.
 class ProductListScreen extends StatefulWidget {
   final String? category;
   final String? searchQuery;
@@ -29,82 +34,124 @@ class _ProductListScreenState extends State<ProductListScreen> {
   bool _showVegOnly = false;
   RangeValues _priceRange = const RangeValues(0, 1000);
 
-  // Category-specific products data (all veg)
-  Map<String, List<Map<String, dynamic>>> _getCategoryProducts(AppLocalizations l10n) => {
-    'Pachadi': [
-      {
-        'name': l10n.traditionalGonguraPachadi,
-        'price': 199.0,
-        'image': 'assets/images/GonguraPickle.png',
-        'isVeg': true,
-        'slug': 'traditional-gongura-pachadi',
-        'isAsset': true,
-      },
-    ],
-    'Chutney': [
-      {
-        'name': l10n.classicGonguraChutney,
-        'price': 149.0,
-        'image': 'assets/images/GonguraChutney.png',
-        'isVeg': true,
-        'slug': 'classic-gongura-chutney',
-        'isAsset': true,
-      },
-    ],
-    'Powder': [
-      {
-        'name': l10n.spicyGonguraPodi,
-        'price': 139.0,
-        'image': 'assets/images/GonguraPowder.png',
-        'isVeg': true,
-        'slug': 'spicy-gongura-podi',
-        'isAsset': true,
-      },
-    ],
-  };
+  List<ProductInventoryModel> _allProducts = [];
+  bool _isLoading = true;
+  StreamSubscription? _inventorySubscription;
 
-  List<Map<String, dynamic>> _getProducts(AppLocalizations l10n) {
-    final categoryProducts = _getCategoryProducts(l10n);
-    // If category is specified, return category-specific products
-    if (widget.category != null && categoryProducts.containsKey(widget.category)) {
-      return categoryProducts[widget.category]!;
-    }
-    // Otherwise return all products
-    return categoryProducts.values.expand((list) => list).toList();
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
   }
 
-  List<Map<String, dynamic>> _getFilteredProducts(AppLocalizations l10n) {
-    var filtered = _getProducts(l10n).where((p) {
-      if (_showVegOnly && !(p['isVeg'] as bool)) return false;
-      final price = p['price'] as double;
-      if (price < _priceRange.start || price > _priceRange.end) return false;
+  @override
+  void dispose() {
+    _inventorySubscription?.cancel();
+    super.dispose();
+  }
+
+  void _loadProducts() {
+    // First, check if we already have cached inventory data
+    final cachedProducts = inventoryService.cachedInventory;
+    if (cachedProducts.isNotEmpty) {
+      _allProducts = cachedProducts.values.where((p) => p.isActive).toList();
+      _isLoading = false;
+    }
+
+    // Listen to inventory stream for real-time updates
+    _inventorySubscription = inventoryService.inventoryStream.listen(
+      (productsMap) {
+        if (mounted) {
+          setState(() {
+            _allProducts = productsMap.values.where((p) => p.isActive).toList();
+            _isLoading = false;
+          });
+        }
+      },
+      onError: (error) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      },
+    );
+  }
+
+  List<ProductInventoryModel> _getFilteredProducts() {
+    var filtered = _allProducts.where((p) {
+      // Category filter
+      if (widget.category != null &&
+          p.category.toLowerCase() != widget.category!.toLowerCase()) {
+        return false;
+      }
+      // Veg filter
+      if (_showVegOnly && !p.isVeg) return false;
+      // Price range filter
+      if (p.basePrice < _priceRange.start || p.basePrice > _priceRange.end) {
+        return false;
+      }
+      // Search query filter
+      if (widget.searchQuery != null && widget.searchQuery!.isNotEmpty) {
+        final query = widget.searchQuery!.toLowerCase();
+        if (!p.productName.toLowerCase().contains(query) &&
+            !p.category.toLowerCase().contains(query)) {
+          return false;
+        }
+      }
       return true;
     }).toList();
 
     // Sort
     switch (_selectedSort) {
       case 'price_low':
-        filtered.sort((a, b) => (a['price'] as double).compareTo(b['price'] as double));
+        filtered.sort((a, b) => a.basePrice.compareTo(b.basePrice));
         break;
       case 'price_high':
-        filtered.sort((a, b) => (b['price'] as double).compareTo(a['price'] as double));
+        filtered.sort((a, b) => b.basePrice.compareTo(a.basePrice));
         break;
       case 'name':
-        filtered.sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
+        filtered.sort((a, b) => a.productName.compareTo(b.productName));
         break;
       case 'popular':
       default:
-        // Keep original order
+        // Keep original order (could be sorted by popularity in backend)
         break;
     }
 
     return filtered;
   }
 
+  void _toggleWishlist(ProductInventoryModel product) async {
+    final item = WishlistItemModel(
+      productSlug: product.productSlug,
+      productName: product.productName,
+      productImage: product.productImage,
+      basePrice: product.basePrice,
+      category: product.category,
+      isVeg: product.isVeg,
+      addedAt: DateTime.now(),
+    );
+
+    final added = await wishlistRepository.toggleItem(item);
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          added
+              ? '${product.productName} added to wishlist'
+              : '${product.productName} removed from wishlist',
+        ),
+        backgroundColor: AppColors.primary,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+    setState(() {}); // Refresh to show updated wishlist state
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final filteredProducts = _getFilteredProducts(l10n);
+    final filteredProducts = _getFilteredProducts();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -117,48 +164,56 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Sort and Filter Bar
-          _buildSortBar(l10n, filteredProducts.length),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                // Sort and Filter Bar
+                _buildSortBar(l10n, filteredProducts.length),
 
-          // Products Grid
-          Expanded(
-            child: filteredProducts.isEmpty
-                ? _buildEmptyState(l10n)
-                : GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 1,
-                      childAspectRatio: 1.2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 16,
-                    ),
-                    itemCount: filteredProducts.length,
-                    itemBuilder: (context, index) {
-                      final product = filteredProducts[index];
-                      return ProductCard(
-                        name: product['name'] as String,
-                        price: product['price'] as double,
-                        imageUrl: product['image'] as String,
-                        isVeg: product['isVeg'] as bool,
-                        isAsset: product['isAsset'] as bool? ?? false,
-                        onTap: () {
-                          context.push(
-                            AppRoutes.getProductDetailRoute(product['slug'] as String),
-                          );
-                        },
-                        onAddToCart: () {
-                          context.push(
-                            AppRoutes.getProductDetailRoute(product['slug'] as String),
-                          );
-                        },
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
+                // Products Grid
+                Expanded(
+                  child: filteredProducts.isEmpty
+                      ? _buildEmptyState(l10n)
+                      : GridView.builder(
+                          padding: const EdgeInsets.all(16),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 1,
+                            childAspectRatio: 1.2,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 16,
+                          ),
+                          itemCount: filteredProducts.length,
+                          itemBuilder: (context, index) {
+                            final product = filteredProducts[index];
+                            final isWishlisted = wishlistRepository.isInWishlist(product.productSlug);
+                            final isNetworkImage = product.productImage.startsWith('http');
+
+                            return ProductCard(
+                              name: product.productName,
+                              price: product.basePrice,
+                              imageUrl: product.productImage,
+                              isVeg: product.isVeg,
+                              isAsset: !isNetworkImage,
+                              isWishlisted: isWishlisted,
+                              isOutOfStock: !product.isInStock,
+                              onTap: () {
+                                context.push(
+                                  AppRoutes.getProductDetailRoute(product.productSlug),
+                                );
+                              },
+                              onAddToCart: () {
+                                context.push(
+                                  AppRoutes.getProductDetailRoute(product.productSlug),
+                                );
+                              },
+                              onWishlistToggle: () => _toggleWishlist(product),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
     );
   }
 

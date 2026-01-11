@@ -16,6 +16,9 @@ void main() async {
   // Initialize dependencies
   await configureDependencies();
 
+  // Seed initial inventory data to Firestore (only runs once)
+  await seedInitialDataIfNeeded();
+
   // Run the app
   runApp(const GonguraGrihaApp());
 }

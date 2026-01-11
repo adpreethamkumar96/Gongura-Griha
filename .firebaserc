@@ -1,0 +1,13 @@
+{
+  "projects": {},
+  "targets": {
+    "gongura-griha": {
+      "storage": {
+        "rules": [
+          "gongura-griha.firebasestorage.app"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

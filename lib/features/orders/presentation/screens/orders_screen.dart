@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_text_styles.dart';
+import '../../../../core/data/models/cart_item_model.dart';
+import '../../../../core/data/models/order_model.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -20,131 +25,81 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  List<OrderModel> _orders = [];
+  bool _isLoading = true;
+  StreamSubscription? _ordersSubscription;
 
-  // Order status stages for progress bar
-  List<String> _getOrderStages(AppLocalizations l10n) => [
-    l10n.orderPlaced,
-    l10n.orderConfirmed,
-    l10n.orderPreparing,
-    l10n.orderShipped,
-    l10n.orderDelivered,
-  ];
+  List<OrderModel> get _activeOrders => _orders
+      .where((o) =>
+          o.status != OrderStatus.delivered && o.status != OrderStatus.cancelled)
+      .toList();
 
-  // Mock orders data with localized names
-  List<Map<String, dynamic>> _getOrders(AppLocalizations l10n) => [
-    {
-      'orderNumber': 'GG78945612',
-      'date': DateTime.now().subtract(const Duration(hours: 2)),
-      'status': 'processing',
-      'statusText': l10n.statusOrderConfirmed,
-      'currentStage': 1, // 0-indexed stage
-      'items': [
-        {
-          'name': l10n.traditionalGonguraPachadi,
-          'quantity': 2,
-          'size': '500g',
-          'sizeIndex': 1,
-          'image': 'assets/images/GonguraPickle.png',
-        },
-        {
-          'name': l10n.spicyGonguraPodi,
-          'quantity': 1,
-          'size': '250g',
-          'sizeIndex': 0,
-          'image': 'assets/images/GonguraPowder.png',
-        },
-      ],
-      'total': 1647.0,
-      'estimatedDelivery': l10n.tomorrowDelivery,
-    },
-    {
-      'orderNumber': 'GG78912345',
-      'date': DateTime.now().subtract(const Duration(days: 3)),
-      'status': 'shipped',
-      'statusText': l10n.statusOutForDelivery,
-      'currentStage': 3,
-      'items': [
-        {
-          'name': l10n.classicGonguraChutney,
-          'quantity': 2,
-          'size': '250g',
-          'sizeIndex': 0,
-          'image': 'assets/images/GonguraChutney.png',
-        },
-      ],
-      'total': 398.0,
-      'estimatedDelivery': l10n.todayDelivery,
-    },
-    {
-      'orderNumber': 'GG78901234',
-      'date': DateTime.now().subtract(const Duration(days: 7)),
-      'status': 'delivered',
-      'statusText': l10n.orderDelivered,
-      'currentStage': 4,
-      'items': [
-        {
-          'name': l10n.traditionalGonguraPachadi,
-          'quantity': 1,
-          'size': '1kg',
-          'sizeIndex': 2,
-          'image': 'assets/images/GonguraPickle.png',
-        },
-        {
-          'name': l10n.spicyGonguraPodi,
-          'quantity': 1,
-          'size': '500g',
-          'sizeIndex': 1,
-          'image': 'assets/images/GonguraPowder.png',
-        },
-      ],
-      'total': 1348.0,
-      'deliveredOn': DateTime.now().subtract(const Duration(days: 5)),
-    },
-    {
-      'orderNumber': 'GG78891234',
-      'date': DateTime.now().subtract(const Duration(days: 30)),
-      'status': 'delivered',
-      'statusText': l10n.orderDelivered,
-      'currentStage': 4,
-      'items': [
-        {
-          'name': l10n.classicGonguraChutney,
-          'quantity': 2,
-          'size': '250g',
-          'sizeIndex': 0,
-          'image': 'assets/images/GonguraChutney.png',
-        },
-      ],
-      'total': 998.0,
-      'deliveredOn': DateTime.now().subtract(const Duration(days: 27)),
-    },
-  ];
-
-  List<Map<String, dynamic>> _getActiveOrders(List<Map<String, dynamic>> orders) =>
-      orders.where((o) => o['status'] != 'delivered').toList();
-
-  List<Map<String, dynamic>> _getPastOrders(List<Map<String, dynamic>> orders) =>
-      orders.where((o) => o['status'] == 'delivered').toList();
+  List<OrderModel> get _pastOrders => _orders
+      .where((o) =>
+          o.status == OrderStatus.delivered || o.status == OrderStatus.cancelled)
+      .toList();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadOrders();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _ordersSubscription?.cancel();
     super.dispose();
+  }
+
+  void _loadOrders() {
+    final userId = authService.currentUser?.uid;
+    if (userId == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    _ordersSubscription =
+        orderService.getUserOrdersStream(userId).listen((orders) {
+      if (mounted) {
+        setState(() {
+          _orders = orders;
+          _isLoading = false;
+        });
+      }
+    });
+  }
+
+  int _getOrderStage(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return 0;
+      case OrderStatus.confirmed:
+        return 1;
+      case OrderStatus.processing:
+        return 2;
+      case OrderStatus.shipped:
+      case OrderStatus.outForDelivery:
+        return 3;
+      case OrderStatus.delivered:
+        return 4;
+      case OrderStatus.cancelled:
+      case OrderStatus.refunded:
+        return -1;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final orders = _getOrders(l10n);
-    final activeOrders = _getActiveOrders(orders);
-    final pastOrders = _getPastOrders(orders);
-    final orderStages = _getOrderStages(l10n);
+    final orderStages = [
+      l10n.orderPlaced,
+      l10n.orderConfirmed,
+      l10n.orderPreparing,
+      l10n.orderShipped,
+      l10n.orderDelivered,
+    ];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -153,23 +108,31 @@ class _OrdersScreenState extends State<OrdersScreen>
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            Tab(text: '${l10n.active} (${activeOrders.length})'),
-            Tab(text: '${l10n.pastOrders} (${pastOrders.length})'),
+            Tab(text: '${l10n.active} (${_activeOrders.length})'),
+            Tab(text: '${l10n.pastOrders} (${_pastOrders.length})'),
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildOrdersList(activeOrders, isActive: true, l10n: l10n, orderStages: orderStages),
-          _buildOrdersList(pastOrders, isActive: false, l10n: l10n, orderStages: orderStages),
-        ],
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildOrdersList(_activeOrders,
+                    isActive: true, l10n: l10n, orderStages: orderStages),
+                _buildOrdersList(_pastOrders,
+                    isActive: false, l10n: l10n, orderStages: orderStages),
+              ],
+            ),
     );
   }
 
-  Widget _buildOrdersList(List<Map<String, dynamic>> orders,
-      {required bool isActive, required AppLocalizations l10n, required List<String> orderStages}) {
+  Widget _buildOrdersList(
+    List<OrderModel> orders, {
+    required bool isActive,
+    required AppLocalizations l10n,
+    required List<String> orderStages,
+  }) {
     if (orders.isEmpty) {
       return Center(
         child: Column(
@@ -196,6 +159,14 @@ class _OrdersScreenState extends State<OrdersScreen>
                 color: AppColors.textTertiary,
               ),
             ),
+            if (isActive) ...[
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () => context.go(AppRoutes.home),
+                icon: const Icon(Icons.shopping_cart),
+                label: const Text('Start Shopping'),
+              ),
+            ],
           ],
         ),
       );
@@ -210,10 +181,14 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
   }
 
-  Widget _buildOrderCard(Map<String, dynamic> order, AppLocalizations l10n, List<String> orderStages) {
-    final items = order['items'] as List;
-    final isDelivered = order['status'] == 'delivered';
-    final currentStage = order['currentStage'] as int;
+  Widget _buildOrderCard(
+    OrderModel order,
+    AppLocalizations l10n,
+    List<String> orderStages,
+  ) {
+    final isDelivered = order.status == OrderStatus.delivered;
+    final isCancelled = order.status == OrderStatus.cancelled;
+    final currentStage = _getOrderStage(order.status);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -223,9 +198,7 @@ class _OrdersScreenState extends State<OrdersScreen>
       elevation: 2,
       child: InkWell(
         onTap: () {
-          context.push(
-            AppRoutes.getOrderDetailRoute(order['orderNumber'] as String),
-          );
+          context.push(AppRoutes.getOrderDetailRoute(order.orderNumber));
         },
         borderRadius: BorderRadius.circular(16),
         child: Column(
@@ -243,7 +216,8 @@ class _OrdersScreenState extends State<OrdersScreen>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(16)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -253,10 +227,11 @@ class _OrdersScreenState extends State<OrdersScreen>
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.receipt_long, size: 18, color: AppColors.primary),
+                          Icon(Icons.receipt_long,
+                              size: 18, color: AppColors.primary),
                           const SizedBox(width: 6),
                           Text(
-                            '#${order['orderNumber']}',
+                            '#${order.orderNumber}',
                             style: AppTextStyles.titleSmall.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -265,26 +240,49 @@ class _OrdersScreenState extends State<OrdersScreen>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        Formatters.formatRelativeTime(order['date'] as DateTime),
+                        Formatters.formatRelativeTime(order.createdAt),
                         style: AppTextStyles.bodySmall.copyWith(
                           color: AppColors.textTertiary,
                         ),
                       ),
                     ],
                   ),
-                  _buildStatusBadge(
-                    order['status'] as String,
-                    order['statusText'] as String,
-                  ),
+                  _buildStatusBadge(order.status),
                 ],
               ),
             ),
 
             // Progress Bar (only for active orders)
-            if (!isDelivered) ...[
+            if (!isDelivered && !isCancelled && currentStage >= 0) ...[
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: _buildProgressBar(currentStage, orderStages),
+              ),
+            ],
+
+            // Cancelled message
+            if (isCancelled) ...[
+              Container(
+                margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withAlpha(20),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.cancel, size: 18, color: AppColors.error),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        order.cancellationReason ?? 'Order was cancelled',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.error,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
 
@@ -302,17 +300,17 @@ class _OrdersScreenState extends State<OrdersScreen>
                     ),
                   ),
                   const SizedBox(height: 12),
-                  ...items.take(2).map((item) => _buildItemRow(item as Map<String, dynamic>, l10n)),
-                  if (items.length > 2)
+                  ...order.items.take(2).map((item) => _buildItemRow(item, l10n)),
+                  if (order.items.length > 2)
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
                       child: Row(
                         children: [
                           Icon(Icons.add_circle_outline,
-                            size: 16, color: AppColors.primary),
+                              size: 16, color: AppColors.primary),
                           const SizedBox(width: 4),
                           Text(
-                            l10n.moreItems(items.length - 2),
+                            l10n.moreItems(order.items.length - 2),
                             style: AppTextStyles.bodySmall.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,
@@ -342,7 +340,9 @@ class _OrdersScreenState extends State<OrdersScreen>
                           Icon(
                             isDelivered ? Icons.check_circle : Icons.schedule,
                             size: 14,
-                            color: isDelivered ? AppColors.success : AppColors.textTertiary,
+                            color: isDelivered
+                                ? AppColors.success
+                                : AppColors.textTertiary,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -355,9 +355,9 @@ class _OrdersScreenState extends State<OrdersScreen>
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        isDelivered
-                            ? Formatters.formatDate(order['deliveredOn'] as DateTime)
-                            : order['estimatedDelivery'] as String,
+                        isDelivered && order.deliveredAt != null
+                            ? Formatters.formatDate(order.deliveredAt!)
+                            : 'Tomorrow, 10 AM - 2 PM',
                         style: AppTextStyles.bodySmall.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -365,13 +365,14 @@ class _OrdersScreenState extends State<OrdersScreen>
                     ],
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withAlpha(15),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      Formatters.formatCurrency(order['total'] as double),
+                      Formatters.formatCurrency(order.total),
                       style: AppTextStyles.titleMedium.copyWith(
                         color: AppColors.primary,
                         fontWeight: FontWeight.bold,
@@ -390,9 +391,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {
-                          // Reorder
-                        },
+                        onPressed: () => _handleReorder(order),
                         icon: const Icon(Icons.replay, size: 18),
                         label: Text(l10n.reorder),
                         style: OutlinedButton.styleFrom(
@@ -407,7 +406,10 @@ class _OrdersScreenState extends State<OrdersScreen>
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () {
-                          // Rate order
+                          // Rate order - could navigate to a rating screen
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Rating feature coming soon!')),
+                          );
                         },
                         icon: const Icon(Icons.star_outline, size: 18),
                         label: Text(l10n.rate),
@@ -423,8 +425,100 @@ class _OrdersScreenState extends State<OrdersScreen>
                 ),
               ),
             ],
+
+            // Cancel button for cancellable orders
+            if (order.canBeCancelled) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: OutlinedButton.icon(
+                  onPressed: () => _showCancelDialog(order),
+                  icon: Icon(Icons.cancel_outlined,
+                      size: 18, color: AppColors.error),
+                  label: Text('Cancel Order',
+                      style: TextStyle(color: AppColors.error)),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    side: BorderSide(color: AppColors.error.withAlpha(100)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _handleReorder(OrderModel order) async {
+    // Add all items from the order to the cart
+    int addedCount = 0;
+    for (final item in order.items) {
+      // Get max quantity from inventory service, default to 10 if not found
+      final maxQty = inventoryService.getMaxQuantity(item.productSlug, item.sizeCode);
+      final inventory = inventoryService.getProductInventory(item.productSlug);
+
+      final cartItem = CartItemModel(
+        productSlug: item.productSlug,
+        productName: item.productName,
+        productImage: item.productImage,
+        sizeCode: item.sizeCode,
+        sizeName: item.sizeName,
+        weight: item.weight,
+        price: item.price,
+        quantity: item.quantity,
+        maxQuantity: maxQty > 0 ? maxQty : 10,
+        category: inventory?.category ?? 'General',
+        isVeg: inventory?.isVeg ?? true,
+      );
+      await cartRepository.addItem(cartItem);
+      addedCount++;
+    }
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$addedCount items added to cart'),
+        action: SnackBarAction(
+          label: 'View Cart',
+          onPressed: () => context.push(AppRoutes.cart),
+        ),
+        backgroundColor: AppColors.success,
+      ),
+    );
+  }
+
+  void _showCancelDialog(OrderModel order) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Order'),
+        content: Text(
+            'Are you sure you want to cancel order #${order.orderNumber}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('No, Keep It'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final success = await orderService.cancelOrder(
+                order.id,
+                reason: 'Cancelled by user',
+              );
+              if (mounted && success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Order cancelled successfully')),
+                );
+              }
+            },
+            child: Text('Yes, Cancel', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
       ),
     );
   }
@@ -433,7 +527,6 @@ class _OrdersScreenState extends State<OrdersScreen>
     return Row(
       children: List.generate(orderStages.length * 2 - 1, (index) {
         if (index.isEven) {
-          // Dot + Label column
           final stageIndex = index ~/ 2;
           final stage = orderStages[stageIndex];
           final isCompleted = stageIndex <= currentStage;
@@ -442,7 +535,6 @@ class _OrdersScreenState extends State<OrdersScreen>
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Dot
               Container(
                 width: 24,
                 height: 24,
@@ -450,7 +542,8 @@ class _OrdersScreenState extends State<OrdersScreen>
                   shape: BoxShape.circle,
                   color: isCompleted ? AppColors.primary : AppColors.divider,
                   border: isCurrent
-                      ? Border.all(color: AppColors.primary.withAlpha(100), width: 2)
+                      ? Border.all(
+                          color: AppColors.primary.withAlpha(100), width: 2)
                       : null,
                   boxShadow: isCurrent
                       ? [
@@ -471,7 +564,6 @@ class _OrdersScreenState extends State<OrdersScreen>
                     : null,
               ),
               const SizedBox(height: 6),
-              // Label
               Text(
                 stage,
                 textAlign: TextAlign.center,
@@ -490,7 +582,6 @@ class _OrdersScreenState extends State<OrdersScreen>
             ],
           );
         } else {
-          // Line
           final beforeStageIndex = index ~/ 2;
           final isCompleted = beforeStageIndex < currentStage;
 
@@ -511,20 +602,16 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
   }
 
-  Widget _buildItemRow(Map<String, dynamic> item, AppLocalizations l10n) {
-    final sizeIndex = item['sizeIndex'] as int? ?? 0;
-    final quantity = item['quantity'] as int;
-
-    // Size icons: S = eco (small), M = nature, L = forest
+  Widget _buildItemRow(OrderItem item, AppLocalizations l10n) {
     IconData sizeIcon;
-    switch (sizeIndex) {
-      case 0:
+    switch (item.sizeCode) {
+      case 'S':
         sizeIcon = Icons.eco;
         break;
-      case 1:
+      case 'M':
         sizeIcon = Icons.nature;
         break;
-      case 2:
+      case 'L':
         sizeIcon = Icons.forest;
         break;
       default:
@@ -535,7 +622,6 @@ class _OrdersScreenState extends State<OrdersScreen>
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          // Product Image
           Container(
             width: 56,
             height: 56,
@@ -544,9 +630,9 @@ class _OrdersScreenState extends State<OrdersScreen>
               color: AppColors.backgroundSecondary,
             ),
             clipBehavior: Clip.antiAlias,
-            child: item['image'] != null
+            child: item.productImage.startsWith('assets/')
                 ? Image.asset(
-                    item['image'] as String,
+                    item.productImage,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Icon(
                       Icons.eco,
@@ -561,13 +647,12 @@ class _OrdersScreenState extends State<OrdersScreen>
                   ),
           ),
           const SizedBox(width: 12),
-          // Item Details
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item['name'] as String,
+                  item.productName,
                   style: AppTextStyles.bodyMedium.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -577,9 +662,9 @@ class _OrdersScreenState extends State<OrdersScreen>
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    // Size badge with icon
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withAlpha(20),
                         borderRadius: BorderRadius.circular(6),
@@ -590,7 +675,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                           Icon(sizeIcon, size: 14, color: AppColors.primary),
                           const SizedBox(width: 4),
                           Text(
-                            item['size'] as String,
+                            item.weight,
                             style: AppTextStyles.labelSmall.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,
@@ -600,7 +685,6 @@ class _OrdersScreenState extends State<OrdersScreen>
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Quantity with leaf icons
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -611,7 +695,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                           ),
                         ),
                         ...List.generate(
-                          quantity > 3 ? 3 : quantity,
+                          item.quantity > 3 ? 3 : item.quantity,
                           (index) => Padding(
                             padding: const EdgeInsets.only(right: 2),
                             child: Icon(
@@ -621,9 +705,9 @@ class _OrdersScreenState extends State<OrdersScreen>
                             ),
                           ),
                         ),
-                        if (quantity > 3)
+                        if (item.quantity > 3)
                           Text(
-                            '+${quantity - 3}',
+                            '+${item.quantity - 3}',
                             style: AppTextStyles.labelSmall.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,
@@ -641,30 +725,52 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
   }
 
-  Widget _buildStatusBadge(String status, String text) {
+  Widget _buildStatusBadge(OrderStatus status) {
     Color color;
     IconData icon;
+    String text;
 
     switch (status) {
-      case 'processing':
+      case OrderStatus.pending:
+        color = AppColors.warning;
+        icon = Icons.hourglass_empty;
+        text = 'Pending';
+        break;
+      case OrderStatus.confirmed:
+        color = AppColors.info;
+        icon = Icons.check_circle_outline;
+        text = 'Confirmed';
+        break;
+      case OrderStatus.processing:
         color = AppColors.warning;
         icon = Icons.access_time;
+        text = 'Processing';
         break;
-      case 'shipped':
+      case OrderStatus.shipped:
         color = AppColors.info;
         icon = Icons.local_shipping;
+        text = 'Shipped';
         break;
-      case 'delivered':
+      case OrderStatus.outForDelivery:
+        color = AppColors.info;
+        icon = Icons.delivery_dining;
+        text = 'Out for Delivery';
+        break;
+      case OrderStatus.delivered:
         color = AppColors.success;
         icon = Icons.check_circle;
+        text = 'Delivered';
         break;
-      case 'cancelled':
+      case OrderStatus.cancelled:
         color = AppColors.error;
         icon = Icons.cancel;
+        text = 'Cancelled';
         break;
-      default:
+      case OrderStatus.refunded:
         color = AppColors.textSecondary;
-        icon = Icons.info;
+        icon = Icons.money_off;
+        text = 'Refunded';
+        break;
     }
 
     return Container(
