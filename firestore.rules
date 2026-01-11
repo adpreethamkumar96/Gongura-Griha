@@ -93,7 +93,7 @@ service cloud.firestore {
     }
 
     // ============ Notifications Collection ============
-    // Users can only read their own notifications
+    // Users can only access their own notifications
     match /notifications/{notificationId} {
       // Allow read if user owns the notification
       allow read: if isAuthenticated()
@@ -104,8 +104,12 @@ service cloud.firestore {
         && resource.data.userId == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
 
-      // No create/delete from client (created by backend/cloud functions)
-      allow create, delete: if false;
+      // Allow users to delete their own notifications
+      allow delete: if isAuthenticated()
+        && resource.data.userId == request.auth.uid;
+
+      // No create from client (created by backend/cloud functions)
+      allow create: if false;
     }
 
     // ============ Coupons Collection ============

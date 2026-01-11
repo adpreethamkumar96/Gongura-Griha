@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../app/routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_typography.dart';
+import '../../../../core/di/injection.dart';
 
 /// Splash Screen
 ///
@@ -57,10 +59,28 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!mounted) return;
 
-    // TODO: Check if user has seen onboarding
-    // TODO: Check if user is logged in
-    // For now, navigate to onboarding
-    context.go(AppRoutes.onboarding);
+    // Check if user has seen onboarding
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
+
+    if (!mounted) return;
+
+    if (!hasSeenOnboarding) {
+      // First time user - show onboarding
+      context.go(AppRoutes.onboarding);
+    } else {
+      // Check if user is logged in
+      final isLoggedIn = authService.currentUser != null;
+
+      if (isLoggedIn) {
+        // User is logged in - go to home
+        context.go(AppRoutes.home);
+      } else {
+        // User has seen onboarding but not logged in - go to home
+        // (home screen handles guest users)
+        context.go(AppRoutes.home);
+      }
+    }
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -43,20 +44,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     _userId = user.uid;
 
-    // Seed sample notifications for development
-    await seedNotificationsForUser(_userId!);
-
-    // Listen to real-time updates
+    // Listen to real-time updates with error handling
     _notificationsSubscription = notificationService
         .getUserNotificationsStream(_userId!)
-        .listen((notifications) {
-      if (mounted) {
-        setState(() {
-          _notifications = notifications;
-          _isLoading = false;
-        });
-      }
-    });
+        .listen(
+      (notifications) {
+        if (mounted) {
+          setState(() {
+            _notifications = notifications;
+            _isLoading = false;
+          });
+        }
+      },
+      onError: (error) {
+        debugPrint('Error loading notifications: $error');
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _notifications = [];
+          });
+        }
+      },
+    );
   }
 
   @override

@@ -34,6 +34,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   List<AddressModel> _addresses = [];
   StreamSubscription? _addressSubscription;
 
+  // Coupon state
+  final TextEditingController _couponController = TextEditingController();
+  bool _isApplyingCoupon = false;
+  String? _appliedCouponCode;
+  double _couponDiscount = 0;
+  String? _couponError;
+
   final List<Map<String, dynamic>> _paymentMethods = [
     {
       'id': 'upi',
@@ -62,7 +69,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   double get _subtotal => cartRepository.subtotal;
   double get _deliveryCharge =>
       cartRepository.calculateDeliveryCharge(_subtotal);
-  double get _total => cartRepository.calculateTotal();
+  double get _total => cartRepository.calculateTotal() - _couponDiscount;
 
   AddressModel? get _selectedAddress {
     if (_selectedAddressId == null) return null;
@@ -82,6 +89,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void dispose() {
     _addressSubscription?.cancel();
+    _couponController.dispose();
     super.dispose();
   }
 
@@ -150,6 +158,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             // Payment Method Section
             _buildSectionHeader('Payment Method'),
             _buildPaymentSection(),
+
+            const SizedBox(height: 8),
+
+            // Coupon Section
+            _buildSectionHeader('Apply Coupon'),
+            _buildCouponSection(),
 
             const SizedBox(height: 8),
 
@@ -453,6 +467,144 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  Widget _buildCouponSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: AppColors.surface,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_appliedCouponCode != null) ...[
+            // Applied coupon display
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.success.withAlpha(26),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.success.withAlpha(77)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle, color: AppColors.success, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Coupon Applied: $_appliedCouponCode',
+                          style: AppTextStyles.titleSmall.copyWith(
+                            color: AppColors.success,
+                          ),
+                        ),
+                        Text(
+                          'You save ${Formatters.formatCurrency(_couponDiscount)}',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.success,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _removeCoupon,
+                    icon: Icon(Icons.close, color: AppColors.error, size: 20),
+                    constraints: const BoxConstraints(),
+                    padding: EdgeInsets.zero,
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            // Coupon input field
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _couponController,
+                    textCapitalization: TextCapitalization.characters,
+                    decoration: InputDecoration(
+                      hintText: 'Enter coupon code',
+                      prefixIcon: Icon(Icons.local_offer_outlined, color: AppColors.textSecondary),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      errorText: _couponError,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: _isApplyingCoupon ? null : _applyCoupon,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: _isApplyingCoupon
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Apply'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _applyCoupon() async {
+    final code = _couponController.text.trim();
+    if (code.isEmpty) {
+      setState(() => _couponError = 'Please enter a coupon code');
+      return;
+    }
+
+    setState(() {
+      _isApplyingCoupon = true;
+      _couponError = null;
+    });
+
+    final userId = authService.currentUser?.uid;
+    final result = await couponService.validateCoupon(
+      code: code,
+      orderAmount: _subtotal,
+      userId: userId,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isApplyingCoupon = false;
+      if (result.isValid) {
+        _appliedCouponCode = code.toUpperCase();
+        _couponDiscount = result.discountAmount;
+        _couponController.clear();
+        _couponError = null;
+      } else {
+        _couponError = result.errorMessage;
+      }
+    });
+  }
+
+  void _removeCoupon() {
+    setState(() {
+      _appliedCouponCode = null;
+      _couponDiscount = 0;
+      _couponError = null;
+    });
+  }
+
   Widget _buildOrderSummary() {
     final itemCount = cartRepository.getItems().length;
 
@@ -467,6 +619,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             _deliveryCharge,
             subtitle: _deliveryCharge == 0 ? 'FREE' : null,
           ),
+          if (_couponDiscount > 0)
+            _buildSummaryRow('Coupon Discount', _couponDiscount, isDiscount: true),
           const Divider(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -773,9 +927,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }).toList(),
         value: _total,
         shipping: _deliveryCharge,
-        discount: null, // TODO: Implement coupon support
-        couponCode: null,
+        discount: _couponDiscount > 0 ? _couponDiscount : null,
+        couponCode: _appliedCouponCode,
       );
+
+      // Record coupon usage if applied
+      if (_appliedCouponCode != null && userId != null) {
+        await couponService.recordCouponUsage(userId, _appliedCouponCode!);
+      }
 
       // Clear cart after successful order
       await cartRepository.clearCart();
