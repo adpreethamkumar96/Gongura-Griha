@@ -536,12 +536,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 const SizedBox(width: 12),
                 SizedBox(
+                  width: 80,
                   height: 48,
                   child: ElevatedButton(
                     onPressed: _isApplyingCoupon ? null : _applyCoupon,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
+                      padding: EdgeInsets.zero,
                     ),
                     child: _isApplyingCoupon
                         ? const SizedBox(

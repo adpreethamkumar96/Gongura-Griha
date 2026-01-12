@@ -276,9 +276,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBannerCarousel(AppLocalizations l10n) {
     final banners = _getBanners(l10n);
-    return Column(
-      children: [
-        CarouselSlider.builder(
+    return RepaintBoundary(
+      child: Column(
+        children: [
+          CarouselSlider.builder(
           itemCount: banners.length,
           itemBuilder: (context, index, realIndex) {
             final banner = banners[index];
@@ -379,6 +380,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ],
+      ),
     );
   }
 
@@ -517,20 +519,22 @@ class _HomeScreenState extends State<HomeScreen> {
           final isWishlisted = wishlistRepository.isInWishlist(product.productSlug);
           final isNetworkImage = product.productImage.startsWith('http');
 
-          return ProductCard(
-            name: product.productName,
-            imageUrl: product.productImage,
-            price: product.basePrice,
-            isVeg: product.isVeg,
-            isAsset: !isNetworkImage,
-            isWishlisted: isWishlisted,
-            onTap: () {
-              context.push(AppRoutes.getProductDetailRoute(product.productSlug));
-            },
-            onAddToCart: () {
-              context.push(AppRoutes.getProductDetailRoute(product.productSlug));
-            },
-            onWishlistToggle: () => _toggleWishlist(product),
+          return RepaintBoundary(
+            child: ProductCard(
+              name: product.productName,
+              imageUrl: product.productImage,
+              price: product.basePrice,
+              isVeg: product.isVeg,
+              isAsset: !isNetworkImage,
+              isWishlisted: isWishlisted,
+              onTap: () {
+                context.push(AppRoutes.getProductDetailRoute(product.productSlug));
+              },
+              onAddToCart: () {
+                context.push(AppRoutes.getProductDetailRoute(product.productSlug));
+              },
+              onWishlistToggle: () => _toggleWishlist(product),
+            ),
           );
         },
         childCount: _featuredProducts.length,
