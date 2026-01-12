@@ -1,5 +1,5 @@
-# Uncomment this line to define a global platform for your project
-# platform :ios, '13.0'
+# Global platform for your project
+platform :ios, '13.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -39,5 +39,49 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+
+    target.build_configurations.each do |config|
+      # Fix deployment target warnings
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+
+      # Suppress warnings from third-party pods
+      config.build_settings['GCC_WARN_INHIBIT_ALL_WARNINGS'] = 'YES'
+      config.build_settings['SWIFT_SUPPRESS_WARNINGS'] = 'YES'
+
+      # Suppress linker warnings (duplicate libraries)
+      config.build_settings['OTHER_LDFLAGS'] ||= '$(inherited)'
+      ldflags = config.build_settings['OTHER_LDFLAGS']
+      if ldflags.is_a?(String) && !ldflags.include?('-w')
+        config.build_settings['OTHER_LDFLAGS'] = "#{ldflags} -Wl,-w"
+      elsif ldflags.is_a?(Array) && !ldflags.include?('-Wl,-w')
+        config.build_settings['OTHER_LDFLAGS'] = ldflags + ['-Wl,-w']
+      end
+    end
+
+    # Fix "Run script build phase will be run during every build" warnings
+    # Mark script phases as always_out_of_date to suppress the warning
+    target.build_phases.each do |phase|
+      if phase.is_a?(Xcodeproj::Project::Object::PBXShellScriptBuildPhase)
+        phase.always_out_of_date = '1'
+      end
+    end
+  end
+
+  # Suppress analyzer warnings for Pods project
+  installer.pods_project.build_configurations.each do |config|
+    config.build_settings['CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED'] = 'NO'
+  end
+
+  # Remove duplicate -lc++ from all targets
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      xcconfig_path = config.base_configuration_reference&.real_path
+      if xcconfig_path && File.exist?(xcconfig_path)
+        xcconfig = File.read(xcconfig_path)
+        # Remove duplicate -lc++ entries
+        new_xcconfig = xcconfig.gsub(/(-lc\+\+\s*)+/, '-lc++ ')
+        File.write(xcconfig_path, new_xcconfig) if xcconfig != new_xcconfig
+      end
+    end
   end
 end
